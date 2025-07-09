@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>अनिक फायनान्शियल सर्व्हिसेस - अंतिम विश्लेषण</title>
+    
+    <!-- CSS Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans Devanagari', sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 950px; margin: 20px auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+        .main-header, .report-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; /* Center the title */
+            border-bottom: 2px solid #0056b3; 
+            padding-bottom: 15px; 
+            margin-bottom: 25px; 
+        }
+        h1, .report-title { 
+            color: #004085; 
+            margin: 0; 
+            font-size: 1.8em; 
+            font-weight: 700; 
+        }
+        .upload-section { text-align: center; padding: 25px; border: 2px dashed #007bff; border-radius: 8px; margin-bottom: 25px; background-color: #f8f9fa; }
+        .upload-section p { font-weight: 500; }
+        input[type="file"], input[type="password"] { display: block; width: calc(100% - 24px); max-width: 400px; margin: 12px auto; padding: 12px; border-radius: 6px; border: 1px solid #ccc; }
+        button { background-color: #007bff; color: white; padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: background-color 0.3s; margin-top: 10px; }
+        #printButton { background-color: #28a745; display: block; margin: 20px auto 0; }
+        .hidden { display: none; }
+        #report-content { border: 1px solid #dee2e6; padding: 25px; border-radius: 8px; background: #fff; }
+        #report-content h3 { color: #004085; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; margin-top: 25px; font-weight: 700; }
+        #summary-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+        #summary-table td { padding: 12px; border: 1px solid #e0e0e0; font-size: 1.1em; vertical-align: middle; }
+        #summary-table td:first-child { font-weight: 500; background-color: #f8f9fa; width: 40%; }
+        #summary-table td:last-child { font-weight: 700; text-align: center; }
+        .score-value { color: #007bff; }
+        .negative-value, .amount-negative { color: #dc3545; }
+        .positive-value { color: #28a745; }
+        #recommendation-box { padding: 20px; margin-top: 15px; border-radius: 5px; font-size: 1.2em; text-align: center; font-weight: 700; border-left: 5px solid; }
+        .recommendation-positive { background-color: #eaf7ed; color: #155724; border-color: #28a745; }
+        .recommendation-negative { background-color: #fdecea; color: #721c24; border-color: #dc3545; }
+        .recommendation-neutral { background-color: #fff9e6; color: #856404; border-color: #ffc107; }
+        #decision-points { list-style: none; padding-left: 0; margin-top: 15px; }
+        #decision-points li { padding: 12px; margin-bottom: 8px; border-radius: 4px; display: flex; align-items: flex-start; }
+        #decision-points li::before { font-family: 'Arial'; font-weight: bold; margin-right: 15px; font-size: 1.5em; line-height: 1; }
+        #decision-points li.negative::before { content: '❌'; }
+        #decision-points li.positive::before { content: '✅'; }
+        #decision-points li.neutral::before { content: 'ℹ️'; }
+        .report-footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ccc; text-align: center; font-size: 0.9em; color: #6c757d; }
+        #loader { text-align: center; padding: 30px; }
+        .spinner { border: 6px solid #f3f3f3; border-top: 6px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 15px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Print Specific Styles */
+        @media print {
+            body, .container {
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+            .main-header, .upload-section, #printButton, #loader {
+                display: none;
+            }
+            #report-container {
+                display: block !important;
+            }
+            #report-content {
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-header">
+            <h1 class="report-title">अनिक फायनान्शियल सर्व्हिसेस</h1>
+        </div>
+        <div class="upload-section">
+            <p>हा अंतिम आणि सर्वात अचूक कोड आहे.</p>
+            <input type="file" id="pdfFile" accept=".pdf">
+            <input type="password" id="pdfPassword" placeholder="PDF पासवर्ड (असल्यास टाका)">
+            <button onclick="analyzeFile()">विश्लेषण करा</button>
+        </div>
+        <div id="loader" class="hidden"><p>कृपया थांबा... अचूक माहितीसाठी रिपोर्ट तपासत आहे...</p><div class="spinner"></div></div>
+        <div id="report-container" class="hidden">
+            <div id="report-content">
+                <div class="report-header">
+                    <h1 class="report-title">अनिक फायनान्शियल सर्व्हिसेस</h1>
+                </div>
+                <h3>ग्राहक पत विश्लेषण रिपोर्ट (Credit Analysis Report)</h3>
+                <table id="summary-table">
+                    <tr><td>ग्राहकाचे नाव</td><td id="customerName"></td></tr>
+                    <tr><td>क्रेडिट स्कोअर</td><td id="creditScore" class="score-value"></td></tr>
+                    <tr><td>चालू खाती (Open)</td><td id="openAccounts" class="positive-value"></td></tr>
+                    <tr><td>थकीत खाती (Past Due)</td><td id="pastDueAccounts" class="negative-value"></td></tr>
+                    <tr><td>चालू खात्यांची एकूण बाकी रक्कम</td><td id="totalBalance"></td></tr>
+                    <tr><td>एकूण थकीत रक्कम (Past Due Amount)</td><td id="overdueAmount" class="amount-negative"></td></tr>
+                    <tr><td>एकूण मासिक हप्ता (EMI)</td><td id="monthlyInstallment"></td></tr>
+                    <tr><td>राइट-ऑफ रक्कम (Written-Off Amt)</td><td id="writtenOffAmount" class="amount-negative"></td></tr>
+                </table>
+                <h3>कर्ज मंजुरीसाठी शिफारस (Loan Recommendation)</h3>
+                <div id="recommendation-box"><p id="recommendation"></p></div>
+                <h4>शिफारशीचे आधारभूत मुद्दे (RBI नियमांनुसार):</h4>
+                <ul id="decision-points"></ul>
+                <div class="report-footer">
+                    <p><strong>टीप:</strong> वरील विश्लेषण हे रिपोर्टमधील माहितीवर आधारित असून केवळ सूचक आहे. अंतिम निर्णय घेण्यापूर्वी मूळ रिपोर्ट आणि ग्राहकाची कागदपत्रे तपासणे बंधनकारक आहे.</p>
+                    <p>हा रिपोर्ट <span id="reportDate"></span> रोजी तयार करण्यात आला.</p>
+                </div>
+            </div>
+            <button id="printButton" onclick="printReport()">रिपोर्ट प्रिंट/सेव्ह करा</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
+    </script>
+
+    <script>
+        async function analyzeFile() {
+            const fileInput = document.getElementById('pdfFile');
+            if (fileInput.files.length === 0) { alert('कृपया एक PDF फाईल निवडा.'); return; }
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('report-container').classList.add('hidden');
+            const password = document.getElementById('pdfPassword').value;
+            const file = fileInput.files[0];
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const typedarray = new Uint8Array(arrayBuffer);
+                const pdf = await pdfjsLib.getDocument({ data: typedarray, password }).promise;
+                let fullText = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    fullText += textContent.items.map(item => item.str).join(' ');
+                }
+                const analysisResult = analyzeCreditReportText(fullText);
+                displayReport(analysisResult);
+            } catch (error) {
+                console.error("PDF processing error:", error);
+                alert('PDF वाचण्यात अडचण येत आहे.');
+            } finally {
+                document.getElementById('loader').classList.add('hidden');
+            }
+        }
+        
+        function parseValue(text, regex, isAmount = false) {
+            const match = text.match(regex);
+            if (!match || !match[1]) return 0;
+            return (isAmount) ? parseFloat(match[1].replace(/,/g, '')) || 0 : parseInt(match[1], 10) || 0;
+        }
+
+        function analyzeCreditReportText(text) {
+            const normalizedText = text.toLowerCase().replace(/\s+/g, ' ');
+            const result = {
+                name: "माहिती आढळली नाही", score: "N/A",
+                openAccounts: 0, pastDueAccounts: 0,
+                totalBalance: 0, overdueAmount: 0,
+                monthlyInstallment: 0, writtenOffAmount: 0
+            };
+            
+            // **FINAL LOGIC: ONLY PARSE THE SUMMARY TABLE.**
+            if (normalizedText.includes('credit report summary')) {
+                const summaryPatterns = {
+                    open: /number of open accounts\s*:\s*(\d+)/,
+                    pastDue: /number of past due accounts\s*:\s*(\d+)/,
+                    balance: /total balance amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/,
+                    pastDueAmt: /total past due amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/,
+                    installment: /total monthly instmt amt\s*:\s*(?:rs\.\s*)?([\d,.]+)/,
+                    writtenOff: /total written off amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/
+                };
+                result.openAccounts = parseValue(normalizedText, summaryPatterns.open);
+                result.pastDueAccounts = parseValue(normalizedText, summaryPatterns.pastDue);
+                result.totalBalance = parseValue(normalizedText, summaryPatterns.balance, true);
+                result.overdueAmount = parseValue(normalizedText, summaryPatterns.pastDueAmt, true);
+                result.monthlyInstallment = parseValue(normalizedText, summaryPatterns.installment, true);
+                result.writtenOffAmount = parseValue(normalizedText, summaryPatterns.writtenOff, true);
+            } else {
+                 alert("महत्त्वाची सूचना: 'Credit Report Summary' टेबल सापडला नाही. विश्लेषण अपूर्ण असू शकते.");
+            }
+
+            // NAME AND SCORE PARSING (This is now reliable based on your sample)
+            const nameRegex = /Consumer Name:\s*([A-Z\s]+?)(?=Personal Information)/i;
+            let nameMatch = text.match(nameRegex);
+            if (nameMatch && nameMatch[1]) {
+                result.name = nameMatch[1].trim();
+            } else {
+                 result.name = (text.match(/Name\s*:\s*([A-Z\s]+)/i) || ["", "माहिती आढळली नाही"])[1].trim();
+            }
+            
+            result.score = (normalizedText.match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
+            
+            return result;
+        }
+        
+        function generateDecision(analysis) {
+             const points = [];
+            let recommendationText = "", recommendationClass = "";
+            const score = parseInt(analysis.score, 10) || 0; 
+            
+            if (analysis.writtenOffAmount > 0) {
+                recommendationText = "कर्ज देणे अत्यंत धोकादायक आहे (High Risk / Reject)";
+                recommendationClass = "recommendation-negative";
+                points.push({ text: `सारांश तक्त्यानुसार ₹ ${new Intl.NumberFormat('en-IN').format(analysis.writtenOffAmount)} ची 'राइट-ऑफ' रक्कम आहे.`, type: "negative" });
+            } 
+            else if (analysis.pastDueAccounts > 0) {
+                recommendationText = "कर्ज देणे जोखमीचे आहे (Medium-High Risk)";
+                recommendationClass = "recommendation-negative";
+                points.push({ text: `सारांश तक्त्यानुसार, ${analysis.pastDueAccounts} खात्यांवर ₹ ${new Intl.NumberFormat('en-IN').format(analysis.overdueAmount)} रक्कम थकीत आहे.`, type: "negative" });
+            }
+            else if (analysis.openAccounts > 2) {
+                recommendationText = "मध्यम जोखीम (Medium Risk)";
+                recommendationClass = "recommendation-neutral";
+                points.push({ text: `रिपोर्ट स्वच्छ आहे, परंतु ${analysis.openAccounts} कर्ज चालू असल्याने परतफेड क्षमतेचे (DTI) मूल्यांकन करावे.`, type: "neutral" });
+            }
+            else { 
+                recommendationText = "प्रोफाइल सकारात्मक आहे (Low Risk)";
+                recommendationClass = "recommendation-positive";
+                points.push({ text: `क्रेडिट स्कोअर (${score}) उत्तम आहे आणि रिपोर्ट स्वच्छ आहे.`, type: "positive" });
+            }
+            if (analysis.monthlyInstallment > 0) {
+                 points.push({text: `सध्याचा एकूण मासिक हप्ता (EMI) ₹ ${new Intl.NumberFormat('en-IN').format(analysis.monthlyInstallment)} आहे. नवीन कर्जाचा हप्ता विचारात घेऊन निर्णय घ्यावा.`, type: "neutral"});
+            }
+            return { recommendation: recommendationText, class: recommendationClass, points: points };
+        }
+
+        function displayReport(analysis) {
+            document.getElementById('customerName').textContent = analysis.name.toUpperCase();
+            document.getElementById('creditScore').textContent = analysis.score;
+            document.getElementById('openAccounts').textContent = analysis.openAccounts;
+            document.getElementById('pastDueAccounts').textContent = analysis.pastDueAccounts;
+            document.getElementById('totalBalance').textContent = `₹ ${new Intl.NumberFormat('en-IN').format(analysis.totalBalance)}`;
+            document.getElementById('overdueAmount').textContent = `₹ ${new Intl.NumberFormat('en-IN').format(analysis.overdueAmount)}`;
+            document.getElementById('monthlyInstallment').textContent = `₹ ${new Intl.NumberFormat('en-IN').format(analysis.monthlyInstallment)}`;
+            document.getElementById('writtenOffAmount').textContent = `₹ ${new Intl.NumberFormat('en-IN').format(analysis.writtenOffAmount)}`;
+            const decision = generateDecision(analysis);
+            const recommendationBox = document.getElementById('recommendation-box');
+            recommendationBox.className = '';
+            recommendationBox.classList.add(decision.class);
+            document.getElementById('recommendation').textContent = decision.recommendation;
+            const pointsList = document.getElementById('decision-points');
+            pointsList.innerHTML = '';
+            decision.points.forEach(point => {
+                const li = document.createElement('li');
+                li.textContent = point.text;
+                li.classList.add(point.type);
+                pointsList.appendChild(li);
+            });
+            document.getElementById('reportDate').textContent = new Date().toLocaleString('mr-IN');
+            document.getElementById('report-container').classList.remove('hidden');
+        }
+        
+        function printReport() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
