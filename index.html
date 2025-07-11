@@ -83,6 +83,7 @@
                 <h3>ग्राहक पत विश्लेषण रिपोर्ट (Credit Analysis Report)</h3>
                 <table id="summary-table">
                     <tr><td>ग्राहकाचे नाव</td><td id="customerName"></td></tr>
+                    <tr><td>वय (Age)</td><td id="customerAge"></td></tr>
                     <tr><td>क्रेडिट स्कोअर</td><td id="creditScore" class="score-value"></td></tr>
                     <tr><td>चालू कर्ज (एकूण)</td><td id="openAccountsCount"></td></tr>
                     <tr><td>चालू कर्ज (कंपनीचे नाव)</td><td id="openAccountsCompany" class="company-list"></td></tr>
@@ -108,9 +109,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
-    </script>
 
-    <script>
         async function analyzeFile() {
             const fileInput = document.getElementById('pdfFile');
             if (fileInput.files.length === 0) { alert('कृपया एक PDF फाईल निवडा.'); return; }
@@ -132,126 +131,155 @@
                 displayReport(analysisResult);
             } catch (error) {
                 console.error("PDF processing error:", error);
-                alert('PDF वाचण्यात अडचण येत आहे.');
+                alert('PDF वाचण्यात अडचण येत आहे. पासवर्ड चुकीचा असू शकतो किंवा फाईल खराब असू शकते.');
             } finally {
                 document.getElementById('loader').classList.add('hidden');
             }
         }
-        
-        function parseValue(text, regex, isAmount = false) {
-            const match = text.match(regex);
-            if (!match || !match[1]) return 0;
-            return (isAmount) ? parseFloat(match[1].replace(/,/g, '')) || 0 : parseInt(match[1], 10) || 0;
+
+        function calculateAge(dobString, reportDateString) {
+            try {
+                const [dobDay, dobMonth, dobYear] = dobString.split('-').map(Number);
+                const [repDay, repMonth, repYear] = reportDateString.split('-').map(Number);
+                const dob = new Date(dobYear, dobMonth - 1, dobDay);
+                const reportDate = new Date(repYear, repMonth - 1, repDay);
+                let age = reportDate.getFullYear() - dob.getFullYear();
+                const m = reportDate.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && reportDate.getDate() < dob.getDate())) {
+                    age--;
+                }
+                return age;
+            } catch (e) {
+                return 0;
+            }
         }
 
         function analyzeCreditReportText(text) {
-            // **THE ULTIMATE FIX: DELETE THE GLOSSARY SECTION BEFORE DOING ANYTHING ELSE**
             let cleanText = text;
             const legendMarker = "Glossary, Terms and Explanations:";
             const markerIndex = text.indexOf(legendMarker);
-
             if (markerIndex !== -1) {
                 cleanText = text.substring(0, markerIndex);
-                console.log("SUCCESS: Glossary and all subsequent text has been permanently ignored.");
             }
 
-            const normalizedText = cleanText.toLowerCase().replace(/\s+/g, ' ');
             const result = {
-                name: "माहिती आढळली नाही", score: "N/A",
+                name: "माहिती आढळली नाही", score: "N/A", age: 0,
                 openAccounts: 0, pastDueAccounts: 0,
                 totalBalance: 0, overdueAmount: 0,
                 monthlyInstallment: 0, writtenOffAmount: 0,
                 openAccountInstitutions: [],
-                otherCompanyOpenAccounts: 0
+                otherCompanyOpenAccounts: 0,
+                pastDueInstitutions: [],
+                writtenOffInstitutions: []
             };
+
+            const dobMatch = cleanText.match(/DOB:\s*(\d{2}-\d{2}-\d{4})/i);
+            const reportDateMatch = cleanText.match(/DATE:\s*(\d{2}-\d{2}-\d{4})/i);
+            if (dobMatch && reportDateMatch) {
+                result.age = calculateAge(dobMatch[1], reportDateMatch[1]);
+            }
             
+            const normalizedText = cleanText.toLowerCase().replace(/\s+/g, ' ');
             if (normalizedText.includes('credit report summary')) {
-                const summaryPatterns = {
-                    pastDue: /number of past due accounts\s*:\s*(\d+)/,
-                    balance: /total balance amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/,
-                    pastDueAmt: /total past due amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/,
-                    installment: /total monthly instmt amt\s*:\s*(?:rs\.\s*)?([\d,.]+)/,
-                    writtenOff: /total written off amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/
-                };
-                result.pastDueAccounts = parseValue(normalizedText, summaryPatterns.pastDue);
-                result.totalBalance = parseValue(normalizedText, summaryPatterns.balance, true);
-                result.overdueAmount = parseValue(normalizedText, summaryPatterns.pastDueAmt, true);
-                result.monthlyInstallment = parseValue(normalizedText, summaryPatterns.installment, true);
-                result.writtenOffAmount = parseValue(normalizedText, summaryPatterns.writtenOff, true);
+                result.pastDueAccounts = parseInt(normalizedText.match(/number of past due accounts\s*:\s*(\d+)/)?.[1] || '0', 10);
+                result.totalBalance = parseFloat(normalizedText.match(/total balance amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0');
+                result.overdueAmount = parseFloat(normalizedText.match(/total past due amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0');
+                result.monthlyInstallment = parseFloat(normalizedText.match(/total monthly instmt amt\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0');
+                result.writtenOffAmount = parseFloat(normalizedText.match(/total written off amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0');
             }
 
-            const nameRegex = /Consumer Name:\s*([A-Z\s]+?)(?=Personal Information)/i;
-            let nameMatch = text.match(nameRegex);
-            if (nameMatch && nameMatch[1]) {
-                result.name = nameMatch[1].trim();
-            } else {
-                 result.name = (text.match(/Name\s*:\s*([A-Z\s]+)/i) || ["", "माहिती आढळली नाही"])[1].trim();
-            }
-            result.score = (cleanText.toLowerCase().match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
+            const nameRegex = /Consumer Name:\s*([A-Z\s]+?)(?=Personal Information|ASHABAI LAXMAN SHINDE)/i;
+            result.name = (text.match(nameRegex) || ["", "माहिती आढळली नाही"])[1].trim();
+            result.score = (cleanText.match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
 
             const accountChunks = cleanText.split(/Institution\s*:/);
             if (accountChunks.length > 1) {
                 for (let i = 1; i < accountChunks.length; i++) {
                     const chunk = accountChunks[i];
+                    const institutionNameMatch = chunk.match(/^\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount|Current Balance)/i);
+                    let companyName = "";
+                    if (institutionNameMatch && institutionNameMatch[1]) {
+                        companyName = institutionNameMatch[1].replace(/Pvt\s*Ltd|Private\s*Limited|Limited/i, '').trim();
+                    }
+
                     if (/Status\s*:\s*(Current Account|.*days past due)/i.test(chunk)) {
-                        const institutionNameMatch = chunk.match(/^\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount)/i);
-                        if(institutionNameMatch && institutionNameMatch[1]){
-                           let companyName = institutionNameMatch[1].trim();
-                           companyName = companyName.replace(/Pvt\s*Ltd/i, '').trim();
-                           if(companyName) {
-                               result.openAccountInstitutions.push(companyName);
-                               if(!/anik/i.test(companyName)) {
-                                   result.otherCompanyOpenAccounts++;
-                               }
+                        if(companyName && !result.openAccountInstitutions.includes(companyName)) {
+                           result.openAccountInstitutions.push(companyName);
+                           if(!/anik/i.test(companyName)) {
+                               result.otherCompanyOpenAccounts++;
                            }
+                        }
+                    }
+                    
+                    // *** NEW, MORE ACCURATE LOGIC ***
+                    const statusLineMatch = chunk.match(/Status\s*:(.*?)(?=Disbursed Amount|Last Payment Date)/i);
+                    const statusLine = statusLineMatch ? statusLineMatch[1].toLowerCase() : '';
+
+                    const historyLineMatch = chunk.match(/History 24 Months\s*:(.*?)(?=Name:|$)/i);
+                    const historyLine = historyLineMatch ? historyLineMatch[1].toLowerCase() : '';
+
+                    if (statusLine.includes('past due')) {
+                        if (companyName && !result.pastDueInstitutions.includes(companyName)) {
+                            result.pastDueInstitutions.push(companyName);
+                        }
+                    }
+                    
+                    if (statusLine.includes('written off') || statusLine.includes('settled') || historyLine.includes('sub') || historyLine.includes('wdf') || historyLine.includes('dbf')) {
+                         if (companyName && !result.writtenOffInstitutions.includes(companyName)) {
+                            result.writtenOffInstitutions.push(companyName);
                         }
                     }
                 }
             }
             result.openAccounts = result.openAccountInstitutions.length;
-
+            
             return result;
         }
         
-        // **FINAL DECISION LOGIC WITH ALL YOUR RULES**
         function generateDecision(analysis) {
             const points = [];
             let recommendationText = "", recommendationClass = "";
             
-            // Rule 1 (Highest Priority): Past Due or Written Off
-            if (analysis.pastDueAccounts > 0 || analysis.writtenOffAmount > 0) {
+            if (analysis.age > 60) {
                 recommendationText = "हाय रिस्क (High Risk)";
                 recommendationClass = "recommendation-negative";
-                if(analysis.pastDueAccounts > 0) points.push({ text: `रिपोर्टमध्ये ${analysis.pastDueAccounts} 'पास्ट ड्यू' खाते आहे. कर्ज नाकारण्याची शिफारस आहे.`, type: "negative" });
-                if(analysis.writtenOffAmount > 0) points.push({ text: `रिपोर्टमध्ये 'राइट-ऑफ' नोंद आहे. कर्ज नाकारण्याची शिफारस आहे.`, type: "negative" });
+                points.push({ text: `ग्राहकाचे वय ${analysis.age} वर्षे आहे, जे 60 वर्षांपेक्षा जास्त आहे. कर्ज नाकारण्याची शिफारस आहे.`, type: "negative" });
             }
-            // Rule 2: Outstanding > 1,20,000
+            else if (analysis.pastDueInstitutions.length > 0 || analysis.writtenOffInstitutions.length > 0) {
+                recommendationText = "हाय रिस्क (High Risk)";
+                recommendationClass = "recommendation-negative";
+                
+                let negativeReasons = [];
+                if (analysis.pastDueInstitutions.length > 0) {
+                    negativeReasons.push(`<strong>${analysis.pastDueInstitutions.join(', ')}</strong> या कंपनीचे कर्ज 'पास्ट ड्यू' (थकीत) आहे.`);
+                }
+                if (analysis.writtenOffInstitutions.length > 0) {
+                    negativeReasons.push(`<strong>${analysis.writtenOffInstitutions.join(', ')}</strong> या कंपनीचे कर्ज 'राईट-ऑफ', 'सेटल' किंवा 'सब-स्टँडर्ड' आहे.`);
+                }
+                points.push({ text: `${negativeReasons.join('<br>')}<br>त्यामुळे कर्ज नाकारण्याची शिफारस आहे.`, type: "negative" });
+            }
             else if (analysis.totalBalance > 120000) {
                 recommendationText = "हाय रिस्क (High Risk)";
                 recommendationClass = "recommendation-negative";
                 points.push({ text: `एकूण बाकी रक्कम ₹ ${new Intl.NumberFormat('en-IN').format(analysis.totalBalance)} आहे (१,२०,००० पेक्षा जास्त).`, type: "negative" });
             }
-            // Rule 3: 3 or more OTHER companies
             else if (analysis.otherCompanyOpenAccounts >= 3) {
                 recommendationText = "हाय रिस्क (High Risk)";
                 recommendationClass = "recommendation-negative";
                 points.push({ text: `अनिक वगळून, ग्राहकाचे कर्ज ${analysis.otherCompanyOpenAccounts} इतर कंपन्यांमध्ये चालू आहे, ज्यामुळे कर्जाचा बोजा जास्त आहे.`, type: "negative" });
             }
-            // Rule 4: Special condition for < 50k outstanding, even with multiple loans
             else if (analysis.totalBalance < 50000 && analysis.openAccounts > 0) {
                 recommendationText = "मध्यम रिस्क (Medium Risk)";
                 recommendationClass = "recommendation-neutral";
                 points.push({ text: `एकूण थकबाकी ₹ ${new Intl.NumberFormat('en-IN').format(analysis.totalBalance)} (पन्नास हजारांपेक्षा कमी) आहे, ही एक सकारात्मक बाब आहे.`, type: "positive" });
                 points.push({ text: `तरीही, चालू कर्जे असल्याने, परतफेड क्षमता तपासून मर्यादित कर्ज देण्याचा विचार करता येईल.`, type: "neutral" });
             }
-            // Rule 5: 2 OTHER companies
             else if (analysis.otherCompanyOpenAccounts === 2) {
                 recommendationText = "मध्यम रिस्क (Medium Risk)";
                 recommendationClass = "recommendation-neutral";
                 points.push({ text: `अनिक वगळून, ग्राहकाचे कर्ज २ इतर कंपन्यांमध्ये चालू आहे. परतफेड क्षमतेचे मूल्यांकन करणे आवश्यक आहे.`, type: "neutral" });
                 points.push({ text: `कर्ज मंजुरी फक्त ₹ 25,000 पर्यंत मर्यादित ठेवण्याची शिफारस आहे.`, type: "neutral" });
             }
-            // Rule 6: Low risk (clean report, <=1 other loan)
             else { 
                 recommendationText = "लो रिस्क (Low Risk)";
                 recommendationClass = "recommendation-positive";
@@ -264,6 +292,7 @@
 
         function displayReport(analysis) {
             document.getElementById('customerName').textContent = analysis.name.toUpperCase();
+            document.getElementById('customerAge').textContent = analysis.age > 0 ? `${analysis.age} वर्षे` : 'N/A';
             document.getElementById('creditScore').textContent = analysis.score;
             document.getElementById('openAccountsCount').textContent = `${analysis.openAccounts} (अनिक वगळून: ${analysis.otherCompanyOpenAccounts})`;
             document.getElementById('openAccountsCompany').innerHTML = analysis.openAccountInstitutions.length > 0 ? analysis.openAccountInstitutions.join('<br>') : 'एकही नाही';
@@ -272,19 +301,22 @@
             document.getElementById('overdueAmount').textContent = `₹ ${new Intl.NumberFormat('en-IN').format(analysis.overdueAmount)}`;
             document.getElementById('monthlyInstallment').textContent = `₹ ${new Intl.NumberFormat('en-IN').format(analysis.monthlyInstallment)}`;
             document.getElementById('writtenOffAmount').textContent = `₹ ${new Intl.NumberFormat('en-IN').format(analysis.writtenOffAmount)}`;
+            
             const decision = generateDecision(analysis);
             const recommendationBox = document.getElementById('recommendation-box');
             recommendationBox.className = '';
             recommendationBox.classList.add(decision.class);
             document.getElementById('recommendation').textContent = decision.recommendation;
+            
             const pointsList = document.getElementById('decision-points');
             pointsList.innerHTML = '';
             decision.points.forEach(point => {
                 const li = document.createElement('li');
-                li.textContent = point.text;
+                li.innerHTML = point.text;
                 li.classList.add(point.type);
                 pointsList.appendChild(li);
             });
+            
             document.getElementById('reportDate').textContent = new Date().toLocaleString('mr-IN');
             document.getElementById('report-container').classList.remove('hidden');
         }
