@@ -238,116 +238,56 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
 
-        // NO CHANGE IN ANALYSIS LOGIC (Except making it more specific as requested)
         async function analyzeFile() { const fileInput = document.getElementById('pdfFile'); if (fileInput.files.length === 0) { alert('कृपया एक PDF फाईल निवडा.'); return; } document.getElementById('loader').classList.remove('hidden'); document.getElementById('report-container').classList.add('hidden'); const password = document.getElementById('pdfPassword').value; const file = fileInput.files[0]; try { const arrayBuffer = await file.arrayBuffer(); const typedarray = new Uint8Array(arrayBuffer); const pdf = await pdfjsLib.getDocument({ data: typedarray, password }).promise; let fullText = ''; for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const textContent = await page.getTextContent(); fullText += textContent.items.map(item => item.str).join(' '); } const analysisResult = analyzeCreditReportText(fullText); displayReport(analysisResult); } catch (error) { console.error("PDF processing error:", error); alert('PDF वाचण्यात अडचण येत आहे. पासवर्ड चुकीचा असू शकतो किंवा फाईल खराब असू शकते.'); } finally { document.getElementById('loader').classList.add('hidden'); } }
         function calculateAge(dobString, reportDateString) { try { const [dobDay, dobMonth, dobYear] = dobString.split('-').map(Number); const [repDay, repMonth, repYear] = reportDateString.split('-').map(Number); const dob = new Date(dobYear, dobMonth - 1, dobDay); const reportDate = new Date(repYear, repMonth - 1, repDay); let age = reportDate.getFullYear() - dob.getFullYear(); const m = reportDate.getMonth() - dob.getMonth(); if (m < 0 || (m === 0 && reportDate.getDate() < dob.getDate())) { age--; } return age; } catch (e) { return 0; } }
         
         function analyzeCreditReportText(text) {
-            let cleanText = text;
-            const legendMarker = "Glossary, Terms and Explanations:";
-            const markerIndex = text.indexOf(legendMarker);
-            if (markerIndex !== -1) { cleanText = text.substring(0, markerIndex); }
-            const result = {
-                name: "माहिती आढळली नाही", score: "N/A", age: 0, openAccounts: 0, pastDueAccounts: 0, totalBalance: 0, overdueAmount: 0, monthlyInstallment: 0, writtenOffAmount: 0,
-                openAccountInstitutions: [], otherCompanyOpenAccounts: 0,
-                pastDueCompanies: [], 
-                negativeAccounts: [] // **MODIFIED**: To store specific reasons
-            };
-            const dobMatch = cleanText.match(/DOB:\s*(\d{2}-\d{2}-\d{4})/i);
-            const reportDateMatch = cleanText.match(/DATE:\s*(\d{2}-\d{2}-\d{4})/i);
-            if (dobMatch && reportDateMatch) { result.age = calculateAge(dobMatch[1], reportDateMatch[1]); }
+            let cleanText = text; const legendMarker = "Glossary, Terms and Explanations:"; const markerIndex = text.indexOf(legendMarker); if (markerIndex !== -1) { cleanText = text.substring(0, markerIndex); }
+            const result = { name: "माहिती आढळली नाही", score: "N/A", age: 0, openAccounts: 0, pastDueAccounts: 0, totalBalance: 0, overdueAmount: 0, monthlyInstallment: 0, writtenOffAmount: 0, openAccountInstitutions: [], otherCompanyOpenAccounts: 0, pastDueCompanies: [], negativeAccounts: [] };
+            const dobMatch = cleanText.match(/DOB:\s*(\d{2}-\d{2}-\d{4})/i); const reportDateMatch = cleanText.match(/DATE:\s*(\d{2}-\d{2}-\d{4})/i); if (dobMatch && reportDateMatch) { result.age = calculateAge(dobMatch[1], reportDateMatch[1]); }
             const normalizedText = cleanText.toLowerCase().replace(/\s+/g, ' ');
-            if (normalizedText.includes('credit report summary')) {
-                result.pastDueAccounts = parseInt(normalizedText.match(/number of past due accounts\s*:\s*(\d+)/)?.[1] || '0', 10);
-                result.totalBalance = parseFloat(normalizedText.match(/total balance amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0');
-                result.overdueAmount = parseFloat(normalizedText.match(/total past due amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0');
-                result.monthlyInstallment = parseFloat(normalizedText.match(/total monthly instmt amt\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0');
-                result.writtenOffAmount = parseFloat(normalizedText.match(/total written off amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0');
-            }
-            const nameRegex = /Consumer Name:\s*([A-Z\s]+?)(?=Personal Information|ASHABAI LAXMAN SHINDE)/i;
-            result.name = (text.match(nameRegex) || ["", "माहिती आढळली नाही"])[1].trim();
-            result.score = (cleanText.match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
+            if (normalizedText.includes('credit report summary')) { result.pastDueAccounts = parseInt(normalizedText.match(/number of past due accounts\s*:\s*(\d+)/)?.[1] || '0', 10); result.totalBalance = parseFloat(normalizedText.match(/total balance amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0'); result.overdueAmount = parseFloat(normalizedText.match(/total past due amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0'); result.monthlyInstallment = parseFloat(normalizedText.match(/total monthly instmt amt\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0'); result.writtenOffAmount = parseFloat(normalizedText.match(/total written off amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0'); }
+            const nameRegex = /Consumer Name:\s*([A-Z\s]+?)(?=Personal Information|ASHABAI LAXMAN SHINDE)/i; result.name = (text.match(nameRegex) || ["", "माहिती आढळली नाही"])[1].trim(); result.score = (cleanText.match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
             const accountChunks = cleanText.split(/Institution\s*:/);
             if (accountChunks.length > 1) {
                 for (let i = 1; i < accountChunks.length; i++) {
-                    const chunk = accountChunks[i];
-                    const institutionNameMatch = chunk.match(/^\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount|Current Balance)/i);
-                    let companyName = "";
-                    if (institutionNameMatch && institutionNameMatch[1]) { companyName = institutionNameMatch[1].replace(/Pvt\s*Ltd|Private\s*Limited|Limited|Services|Finance Bank/ig, '').trim(); }
-                    
-                    if (/Status\s*:\s*(Current Account|.*days past due)/i.test(chunk)) {
-                        if (companyName && !result.openAccountInstitutions.includes(companyName)) {
-                            result.openAccountInstitutions.push(companyName);
-                            if (!/anik/i.test(companyName)) { result.otherCompanyOpenAccounts++; }
-                        }
-                    }
-                    
-                    const statusLineMatch = chunk.match(/Status\s*:(.*?)(?=Disbursed Amount|Last Payment Date)/i);
-                    const statusLine = statusLineMatch ? statusLineMatch[1].toLowerCase() : '';
-                    const historyLineMatch = chunk.match(/History 24 Months\s*:(.*?)(?=Name:|$)/i);
-                    const historyLine = historyLineMatch ? historyLineMatch[1].toLowerCase() : '';
-                    
-                    if (statusLine.includes('past due')) {
-                        if (companyName && !result.pastDueCompanies.includes(companyName)) { result.pastDueCompanies.push(companyName); }
-                    }
-                    
-                    // **MODIFIED**: Logic to find specific negative reason
-                    let reason = null;
-                    if (statusLine.includes('written off')) { reason = 'राईट-ऑफ'; }
-                    else if (statusLine.includes('settled')) { reason = 'सेटल'; }
-                    else if (historyLine.includes('sub')) { reason = 'सब-स्टँडर्ड'; }
-                    else if (historyLine.includes('wdf') || historyLine.includes('dbf')) { reason = 'डाउटफुल'; }
-                    
-                    if (reason && companyName && !result.negativeAccounts.some(acc => acc.company === companyName)) {
-                        result.negativeAccounts.push({ company: companyName, reason: reason });
-                    }
+                    const chunk = accountChunks[i]; const institutionNameMatch = chunk.match(/^\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount|Current Balance)/i); let companyName = ""; if (institutionNameMatch && institutionNameMatch[1]) { companyName = institutionNameMatch[1].replace(/Pvt\s*Ltd|Private\s*Limited|Limited|Services|Finance Bank/ig, '').trim(); }
+                    if (/Status\s*:\s*(Current Account|.*days past due)/i.test(chunk)) { if (companyName && !result.openAccountInstitutions.includes(companyName)) { result.openAccountInstitutions.push(companyName); if (!/anik/i.test(companyName)) { result.otherCompanyOpenAccounts++; } } }
+                    const statusLineMatch = chunk.match(/Status\s*:(.*?)(?=Disbursed Amount|Last Payment Date)/i); const statusLine = statusLineMatch ? statusLineMatch[1].toLowerCase() : ''; const historyLineMatch = chunk.match(/History 24 Months\s*:(.*?)(?=Name:|$)/i); const historyLine = historyLineMatch ? historyLineMatch[1].toLowerCase() : '';
+                    if (statusLine.includes('past due')) { if (companyName && !result.pastDueCompanies.includes(companyName)) { result.pastDueCompanies.push(companyName); } }
+                    let reason = null; if (statusLine.includes('written off')) { reason = 'राईट-ऑफ'; } else if (statusLine.includes('settled')) { reason = 'सेटल'; } else if (historyLine.includes('sub')) { reason = 'सब-स्टँडर्ड'; } else if (historyLine.includes('wdf') || historyLine.includes('dbf')) { reason = 'डाउटफुल'; }
+                    if (reason && companyName && !result.negativeAccounts.some(acc => acc.company === companyName)) { result.negativeAccounts.push({ company: companyName, reason: reason }); }
                 }
             }
-            result.openAccounts = result.openAccountInstitutions.length;
-            return result;
+            result.openAccounts = result.openAccountInstitutions.length; return result;
         }
 
         function generateDecision(analysis) {
             const points = []; let recommendationText = "", recommendationClass = "";
-            
-            if (analysis.age > 60) {
-                recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative";
-                points.push({ text: `ग्राहकाचे वय ${analysis.age} वर्षे आहे, जे 60 वर्षांपेक्षा जास्त आहे. कर्ज मंजुरीचा निर्णय मॅनेजरांनी काळजीपूर्वक घ्यावा.`, type: "negative" });
-            } 
-            // **MODIFIED**: Check new specific negative accounts array
+            if (analysis.age > 60) { recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative"; points.push({ text: `ग्राहकाचे वय ${analysis.age} वर्षे आहे, जे 60 वर्षांपेक्षा जास्त आहे. कर्ज मंजुरीचा निर्णय मॅनेजरांनी काळजीपूर्वक घ्यावा.`, type: "negative" }); } 
             else if (analysis.pastDueCompanies.length > 0 || analysis.negativeAccounts.length > 0) {
                 recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative";
-                
-                if (analysis.pastDueCompanies.length > 0) {
-                    points.push({ text: `<strong>${analysis.pastDueCompanies.join(', ')}</strong> या कंपनीचे कर्ज 'पास्ट ड्यू' (थकीत) आहे.`, type: "negative" });
-                }
-                // **MODIFIED**: Generate specific reasons
-                analysis.negativeAccounts.forEach(acc => {
-                    points.push({ text: `<strong>${acc.company}</strong> या कंपनीचे कर्ज '<strong>${acc.reason}</strong>' आहे.`, type: "negative" });
-                });
-                
+                if (analysis.pastDueCompanies.length > 0) { points.push({ text: `<strong>${analysis.pastDueCompanies.join(', ')}</strong> या कंपनीचे कर्ज 'पास्ट ड्यू' (थकीत) आहे.`, type: "negative" }); }
+                analysis.negativeAccounts.forEach(acc => { points.push({ text: `<strong>${acc.company}</strong> या कंपनीचे कर्ज '<strong>${acc.reason}</strong>' आहे.`, type: "negative" }); });
                 points.push({ text: `त्यामुळे, कर्ज मंजुरीचा निर्णय मॅनेजरांनी सर्व बाबी तपासून काळजीपूर्वक घ्यावा.`, type: "neutral" });
             } 
-            else if (analysis.totalBalance > 120000) {
-                recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative";
-                points.push({ text: `एकूण बाकी रक्कम ₹ ${new Intl.NumberFormat('en-IN').format(analysis.totalBalance)} आहे (१,२०,००० पेक्षा जास्त).`, type: "negative" });
-            } else if (analysis.otherCompanyOpenAccounts >= 3) {
-                recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative";
-                points.push({ text: `अनिक वगळून, ग्राहकाचे कर्ज ${analysis.otherCompanyOpenAccounts} इतर कंपन्यांमध्ये चालू आहे, ज्यामुळे कर्जाचा बोजा जास्त आहे.`, type: "negative" });
-            } else if (analysis.totalBalance < 50000 && analysis.openAccounts > 0) {
-                recommendationText = "मध्यम रिस्क (Medium Risk)"; recommendationClass = "recommendation-neutral";
-                points.push({ text: `एकूण थकबाकी ₹ ${new Intl.NumberFormat('en-IN').format(analysis.totalBalance)} (पन्नास हजारांपेक्षा कमी) आहे, ही एक सकारात्मक बाब आहे.`, type: "positive" });
-                points.push({ text: `तरीही, चालू कर्जे असल्याने, परतफेड क्षमता तपासून मर्यादित कर्ज देण्याचा विचार करता येईल.`, type: "neutral" });
-            } else if (analysis.otherCompanyOpenAccounts === 2) {
-                recommendationText = "मध्यम रिस्क (Medium Risk)"; recommendationClass = "recommendation-neutral";
-                points.push({ text: `अनिक वगळून, ग्राहकाचे कर्ज २ इतर कंपन्यांमध्ये चालू आहे. परतफेड क्षमतेचे मूल्यांकन करणे आवश्यक आहे.`, type: "neutral" });
-                points.push({ text: `कर्ज मंजुरी फक्त ₹ 25,000 पर्यंत मर्यादित ठेवण्याची शिफारस आहे.`, type: "neutral" });
-            } else { 
-                recommendationText = "लो रिस्क (Low Risk)"; recommendationClass = "recommendation-positive";
-                points.push({ text: "रिपोर्ट पूर्णपणे स्वच्छ आहे आणि इतर कंपन्यांमध्ये कमी कर्ज आहेत.", type: "positive" });
-                points.push({ text: "कर्ज मंजुरी युनिटच्या अंतिम निर्णयावर अवलंबून असेल.", type: "positive" });
-            }
+            else if (analysis.totalBalance > 120000) { recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative"; points.push({ text: `एकूण बाकी रक्कम ₹ ${new Intl.NumberFormat('en-IN').format(analysis.totalBalance)} आहे (१,२०,००० पेक्षा जास्त).`, type: "negative" }); } 
+            else if (analysis.otherCompanyOpenAccounts >= 3) { recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative"; points.push({ text: `अनिक वगळून, ग्राहकाचे कर्ज ${analysis.otherCompanyOpenAccounts} इतर कंपन्यांमध्ये चालू आहे, ज्यामुळे कर्जाचा बोजा जास्त आहे.`, type: "negative" }); } 
+            else if (analysis.totalBalance < 50000 && analysis.openAccounts > 0) { recommendationText = "मध्यम रिस्क (Medium Risk)"; recommendationClass = "recommendation-neutral"; points.push({ text: `एकूण थकबाकी ₹ ${new Intl.NumberFormat('en-IN').format(analysis.totalBalance)} (पन्नास हजारांपेक्षा कमी) आहे, ही एक सकारात्मक बाब आहे.`, type: "positive" }); points.push({ text: `तरीही, चालू कर्जे असल्याने, परतफेड क्षमता तपासून मर्यादित कर्ज देण्याचा विचार करता येईल.`, type: "neutral" }); } 
+            else if (analysis.otherCompanyOpenAccounts === 2) { recommendationText = "मध्यम रिस्क (Medium Risk)"; recommendationClass = "recommendation-neutral"; points.push({ text: `अनिक वगळून, ग्राहकाचे कर्ज २ इतर कंपन्यांमध्ये चालू आहे. परतफेड क्षमतेचे मूल्यांकन करणे आवश्यक आहे.`, type: "neutral" }); points.push({ text: `कर्ज मंजुरी फक्त ₹ 25,000 पर्यंत मर्यादित ठेवण्याची शिफारस आहे.`, type: "neutral" }); } 
+            else { recommendationText = "लो रिस्क (Low Risk)"; recommendationClass = "recommendation-positive"; points.push({ text: "रिपोर्ट पूर्णपणे स्वच्छ आहे आणि इतर कंपन्यांमध्ये कमी कर्ज आहेत.", type: "positive" }); points.push({ text: "कर्ज मंजुरी युनिटच्या अंतिम निर्णयावर अवलंबून असेल.", type: "positive" }); }
             return { recommendation: recommendationText, class: recommendationClass, points: points };
+        }
+
+        function renderChart(analysis) {
+            const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN').format(num)}`;
+            const maxVal = Math.max(analysis.totalBalance, analysis.overdueAmount, analysis.writtenOffAmount, 1);
+            document.getElementById('bar-balance').style.height = `${(analysis.totalBalance / maxVal) * 100}%`;
+            document.getElementById('bar-overdue').style.height = `${(analysis.overdueAmount / maxVal) * 100}%`;
+            document.getElementById('bar-writtenoff').style.height = `${(analysis.writtenOffAmount / maxVal) * 100}%`;
+            document.getElementById('value-balance').textContent = formatCurrency(analysis.totalBalance);
+            document.getElementById('value-overdue').textContent = formatCurrency(analysis.overdueAmount);
+            document.getElementById('value-writtenoff').textContent = formatCurrency(analysis.writtenOffAmount);
         }
 
         function displayReport(analysis) {
@@ -371,20 +311,11 @@
             const pointsList = document.getElementById('decision-points');
             pointsList.innerHTML = '';
             decision.points.forEach(point => { const li = document.createElement('li'); li.innerHTML = point.text; li.classList.add(point.type); pointsList.appendChild(li); });
-            setTimeout(() => {
-                const maxVal = Math.max(analysis.totalBalance, analysis.overdueAmount, analysis.writtenOffAmount, 1);
-                const balanceHeight = (analysis.totalBalance / maxVal) * 100;
-                const overdueHeight = (analysis.overdueAmount / maxVal) * 100;
-                const writtenOffHeight = (analysis.writtenOffAmount / maxVal) * 100;
-                document.getElementById('bar-balance').style.height = `${balanceHeight}%`;
-                document.getElementById('bar-overdue').style.height = `${overdueHeight}%`;
-                document.getElementById('bar-writtenoff').style.height = `${writtenOffHeight}%`;
-            }, 100);
-            document.getElementById('value-balance').textContent = formatCurrency(analysis.totalBalance);
-            document.getElementById('value-overdue').textContent = formatCurrency(analysis.overdueAmount);
-            document.getElementById('value-writtenoff').textContent = formatCurrency(analysis.writtenOffAmount);
             document.getElementById('reportDate').textContent = new Date().toLocaleString('mr-IN', { dateStyle: 'short', timeStyle: 'medium' });
             document.getElementById('report-container').classList.remove('hidden');
+            
+            // **RELIABLE CHART RENDERING**
+            renderChart(analysis); 
         }
         
         function printReport() {
