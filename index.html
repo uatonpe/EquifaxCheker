@@ -115,34 +115,19 @@
         .spinner { border: 6px solid #f3f3f3; border-top: 6px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 15px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- FINAL PRINT STYLES --- */
         @media print {
-            @page {
-                size: A4;
-                margin: 0.4in; /* Reduced margin for better fit */
-            }
+            @page { size: A4; margin: 0.4in; }
             body { font-size: 9.5pt; background: #fff; }
             .container { width: 100%; max-width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
             .upload-section, #printButton, #loader { display: none; }
-            
             .main-header { display: flex !important; border-bottom: 1px solid #ccc; margin-bottom: 15px; padding-bottom: 10px;}
             h1.main-title { font-size: 14pt; }
-            
             #report-container { display: block !important; }
             #report-content { border: none; padding: 0; }
-            
             .report-footer { display: block !important; position: fixed; bottom: 20px; left: 0.4in; right: 0.4in; text-align: center; border-top: 1px solid #ccc; padding-top: 8px; font-size: 8pt; color: #666; }
-            
             .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
             .report-main-layout { grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-
-            .kpi-card, .section-box, #decision-points li {
-                padding: 12px;
-                box-shadow: none;
-                background: none;
-                border: 1px solid var(--border-color);
-                break-inside: avoid; /* Prevent breaking across pages */
-            }
+            .kpi-card, .section-box, #decision-points li { padding: 12px; box-shadow: none; background: none; border: 1px solid var(--border-color); break-inside: avoid; }
             .kpi-value { font-size: 1.5em; }
             .kpi-title { font-size: 0.9em; }
             h3, .section-title { font-size: 11pt; margin-bottom: 10px; padding-bottom: 5px; }
@@ -264,11 +249,32 @@
 
         function generateDecision(analysis) {
             const points = []; let recommendationText = "", recommendationClass = "";
-            if (analysis.age > 60) { recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative"; points.push({ text: `ग्राहकाचे वय ${analysis.age} वर्षे आहे, जे 60 वर्षांपेक्षा जास्त आहे. कर्ज मंजुरीचा निर्णय मॅनेजरांनी काळजीपूर्वक घ्यावा.`, type: "negative" }); } 
-            else if (analysis.pastDueCompanies.length > 0 || analysis.negativeAccounts.length > 0) {
+            
+            if (analysis.age > 60) {
                 recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative";
-                if (analysis.pastDueCompanies.length > 0) { points.push({ text: `<strong>${analysis.pastDueCompanies.join(', ')}</strong> या कंपनीचे कर्ज 'पास्ट ड्यू' (थकीत) आहे.`, type: "negative" }); }
-                analysis.negativeAccounts.forEach(acc => { points.push({ text: `<strong>${acc.company}</strong> या कंपनीचे कर्ज '<strong>${acc.reason}</strong>' आहे.`, type: "negative" }); });
+                points.push({ text: `ग्राहकाचे वय ${analysis.age} वर्षे आहे, जे 60 वर्षांपेक्षा जास्त आहे. कर्ज मंजुरीचा निर्णय मॅनेजरांनी काळजीपूर्वक घ्यावा.`, type: "negative" });
+            } 
+            else if (analysis.negativeAccounts.length > 0 || analysis.writtenOffAmount > 0 || analysis.pastDueAccounts > 0) {
+                recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative";
+                let reasonsGenerated = false;
+
+                analysis.negativeAccounts.forEach(acc => {
+                    points.push({ text: `<strong>${acc.company}</strong> या कंपनीचे कर्ज '<strong>${acc.reason}</strong>' आहे.`, type: "negative" });
+                    reasonsGenerated = true;
+                });
+                
+                if (analysis.pastDueCompanies.length > 0) {
+                    points.push({ text: `<strong>${analysis.pastDueCompanies.join(', ')}</strong> या कंपनीचे कर्ज 'पास्ट ड्यू' (थकीत) आहे.`, type: "negative" });
+                    reasonsGenerated = true;
+                }
+
+                if (!reasonsGenerated && analysis.writtenOffAmount > 0) {
+                    points.push({ text: `रिपोर्टमध्ये <strong>₹ ${new Intl.NumberFormat('en-IN').format(analysis.writtenOffAmount)}</strong> इतकी 'राईट-ऑफ' रक्कम आढळली आहे.`, type: "negative" });
+                }
+                if (!reasonsGenerated && analysis.pastDueAccounts > 0 && analysis.pastDueCompanies.length === 0) {
+                     points.push({ text: `रिपोर्टमध्ये <strong>${analysis.pastDueAccounts}</strong> 'पास्ट ड्यू' (थकीत) खाती आढळली आहेत.`, type: "negative" });
+                }
+
                 points.push({ text: `त्यामुळे, कर्ज मंजुरीचा निर्णय मॅनेजरांनी सर्व बाबी तपासून काळजीपूर्वक घ्यावा.`, type: "neutral" });
             } 
             else if (analysis.totalBalance > 120000) { recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative"; points.push({ text: `एकूण बाकी रक्कम ₹ ${new Intl.NumberFormat('en-IN').format(analysis.totalBalance)} आहे (१,२०,००० पेक्षा जास्त).`, type: "negative" }); } 
@@ -279,17 +285,7 @@
             return { recommendation: recommendationText, class: recommendationClass, points: points };
         }
 
-        function renderChart(analysis) {
-            const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN').format(num)}`;
-            const maxVal = Math.max(analysis.totalBalance, analysis.overdueAmount, analysis.writtenOffAmount, 1);
-            document.getElementById('bar-balance').style.height = `${(analysis.totalBalance / maxVal) * 100}%`;
-            document.getElementById('bar-overdue').style.height = `${(analysis.overdueAmount / maxVal) * 100}%`;
-            document.getElementById('bar-writtenoff').style.height = `${(analysis.writtenOffAmount / maxVal) * 100}%`;
-            document.getElementById('value-balance').textContent = formatCurrency(analysis.totalBalance);
-            document.getElementById('value-overdue').textContent = formatCurrency(analysis.overdueAmount);
-            document.getElementById('value-writtenoff').textContent = formatCurrency(analysis.writtenOffAmount);
-        }
-
+        function renderChart(analysis) { const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN').format(num)}`; const maxVal = Math.max(analysis.totalBalance, analysis.overdueAmount, analysis.writtenOffAmount, 1); document.getElementById('bar-balance').style.height = `${(analysis.totalBalance / maxVal) * 100}%`; document.getElementById('bar-overdue').style.height = `${(analysis.overdueAmount / maxVal) * 100}%`; document.getElementById('bar-writtenoff').style.height = `${(analysis.writtenOffAmount / maxVal) * 100}%`; document.getElementById('value-balance').textContent = formatCurrency(analysis.totalBalance); document.getElementById('value-overdue').textContent = formatCurrency(analysis.overdueAmount); document.getElementById('value-writtenoff').textContent = formatCurrency(analysis.writtenOffAmount); }
         function displayReport(analysis) {
             const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN').format(num)}`;
             document.getElementById('headerCustomerName').textContent = analysis.name.toUpperCase();
@@ -313,14 +309,9 @@
             decision.points.forEach(point => { const li = document.createElement('li'); li.innerHTML = point.text; li.classList.add(point.type); pointsList.appendChild(li); });
             document.getElementById('reportDate').textContent = new Date().toLocaleString('mr-IN', { dateStyle: 'short', timeStyle: 'medium' });
             document.getElementById('report-container').classList.remove('hidden');
-            
-            // **RELIABLE CHART RENDERING**
             renderChart(analysis); 
         }
-        
-        function printReport() {
-            window.print();
-        }
+        function printReport() { window.print(); }
     </script>
 </body>
 </html>
