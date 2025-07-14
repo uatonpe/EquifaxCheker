@@ -84,13 +84,38 @@
         .section-box { background-color: #fdfdfd; padding: 25px; border: 1px solid var(--border-color); border-radius: 12px; }
         .section-title { font-size: 1.2em; font-weight: 700; color: #004085; margin: 0 0 20px 0; text-align: center; }
 
-        .chart-bars { display: flex; justify-content: space-around; height: 180px; border-left: 2px solid var(--border-color); border-bottom: 2px solid var(--border-color); padding-left: 10px; }
-        .bar-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 25%; text-align: center; }
-        .bar-value { font-size: 0.9em; font-weight: 700; color: #555; margin-bottom: 5px; }
-        .bar { width: 50px; border-radius: 5px 5px 0 0; transition: height 0.7s ease-out; height: 0; }
-        .bar.bar-primary { background-color: var(--primary-color); }
-        .bar.bar-negative { background-color: var(--negative-color); }
-        .bar-label { margin-top: 8px; font-weight: 500; font-size: 0.9em; }
+        /* --- NEW: Donut Chart Section --- */
+        .financial-summary-container {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+        }
+        .donut-chart-wrapper {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            flex-shrink: 0;
+        }
+        .donut-chart-svg {
+            transform: rotate(-90deg);
+        }
+        .donut-chart-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .donut-chart-center .center-label { margin: 0; font-size: 0.9em; color: var(--text-muted); font-weight: 500; }
+        .donut-chart-center .center-value { margin: 2px 0 0 0; font-size: 1.6em; color: var(--primary-color); font-weight: bold; }
+        .financial-legend { flex: 1; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 12px; }
+        .legend-color-box { height: 15px; width: 15px; border-radius: 50%; margin-right: 10px; }
+        .legend-item .legend-label { margin: 0; font-size: 0.9em; color: var(--text-muted); }
+        .legend-item .legend-value { margin: 0; font-size: 1.2em; font-weight: 700; }
 
         #recommendation-box { padding: 20px; margin-top: 15px; border-radius: 8px; font-size: 1.2em; text-align: center; font-weight: 700; border-left: 5px solid; }
         .recommendation-positive { background-color: var(--positive-light); color: #155724; border-color: var(--positive-color); }
@@ -125,8 +150,8 @@
             #report-container { display: block !important; }
             #report-content { border: none; padding: 0; }
             .report-footer { display: block !important; position: fixed; bottom: 20px; left: 0.4in; right: 0.4in; text-align: center; border-top: 1px solid #ccc; padding-top: 8px; font-size: 8pt; color: #666; }
-            .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-            .report-main-layout { grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+            .kpi-grid, .report-main-layout { grid-template-columns: 1fr 1fr; gap: 15px; }
+            .financial-summary-container { padding: 15px; }
             .kpi-card, .section-box, #decision-points li { padding: 12px; box-shadow: none; background: none; border: 1px solid var(--border-color); break-inside: avoid; }
             .kpi-value { font-size: 1.5em; }
             .kpi-title { font-size: 0.9em; }
@@ -191,12 +216,27 @@
                         </div>
                     </div>
                     <div class="right-column">
+                        <!-- NEW: Donut chart replaces old summary -->
                         <div class="section-box">
                             <h4 class="section-title">आर्थिक सारांश (Financial Summary)</h4>
-                            <div class="chart-bars">
-                                <div class="bar-wrapper"><div id="value-balance" class="bar-value">₹0</div><div id="bar-balance" class="bar bar-primary"></div><div class="bar-label">एकूण शिल्लक</div></div>
-                                <div class="bar-wrapper"><div id="value-overdue" class="bar-value">₹0</div><div id="bar-overdue" class="bar bar-negative"></div><div class="bar-label">थकीत रक्कम</div></div>
-                                <div class="bar-wrapper"><div id="value-writtenoff" class="bar-value">₹0</div><div id="bar-writtenoff" class="bar bar-negative"></div><div class="bar-label">राइट-ऑफ</div></div>
+                            <div class="financial-summary-container">
+                                <div class="donut-chart-wrapper">
+                                    <svg width="150" height="150" viewBox="0 0 36 36" class="donut-chart-svg">
+                                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e6e6e6" stroke-width="3.5" />
+                                        <path id="chart-arc-balance" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--primary-color)" stroke-width="3.5" stroke-dasharray="0, 100" />
+                                        <path id="chart-arc-overdue" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--neutral-color)" stroke-width="3.5" stroke-dasharray="0, 100" />
+                                        <path id="chart-arc-writtenoff" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--negative-color)" stroke-width="3.5" stroke-dasharray="0, 100" />
+                                    </svg>
+                                    <div class="donut-chart-center">
+                                        <p class="center-label">एकूण कर्ज</p>
+                                        <p class="center-value" id="chart-total-debt">₹ 0</p>
+                                    </div>
+                                </div>
+                                <div class="financial-legend">
+                                    <div class="legend-item"><span class="legend-color-box" style="background-color: var(--primary-color);"></span><div><p class="legend-label">एकूण शिल्लक</p><p class="legend-value" id="legend-balance">₹ 0</p></div></div>
+                                    <div class="legend-item"><span class="legend-color-box" style="background-color: var(--neutral-color);"></span><div><p class="legend-label">थकीत रक्कम</p><p class="legend-value" id="legend-overdue">₹ 0</p></div></div>
+                                    <div class="legend-item"><span class="legend-color-box" style="background-color: var(--negative-color);"></span><div><p class="legend-label">राईट-ऑफ</p><p class="legend-value" id="legend-writtenoff">₹ 0</p></div></div>
+                                </div>
                             </div>
                         </div>
                         <div class="section-box" style="margin-top:25px;">
@@ -249,7 +289,6 @@
 
         function generateDecision(analysis) {
             const points = []; let recommendationText = "", recommendationClass = "";
-            
             if (analysis.age > 60) {
                 recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative";
                 points.push({ text: `ग्राहकाचे वय ${analysis.age} वर्षे आहे, जे 60 वर्षांपेक्षा जास्त आहे. कर्ज मंजुरीचा निर्णय मॅनेजरांनी काळजीपूर्वक घ्यावा.`, type: "negative" });
@@ -257,24 +296,20 @@
             else if (analysis.negativeAccounts.length > 0 || analysis.writtenOffAmount > 0 || analysis.pastDueAccounts > 0) {
                 recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative";
                 let reasonsGenerated = false;
-
                 analysis.negativeAccounts.forEach(acc => {
                     points.push({ text: `<strong>${acc.company}</strong> या कंपनीचे कर्ज '<strong>${acc.reason}</strong>' आहे.`, type: "negative" });
                     reasonsGenerated = true;
                 });
-                
                 if (analysis.pastDueCompanies.length > 0) {
                     points.push({ text: `<strong>${analysis.pastDueCompanies.join(', ')}</strong> या कंपनीचे कर्ज 'पास्ट ड्यू' (थकीत) आहे.`, type: "negative" });
                     reasonsGenerated = true;
                 }
-
                 if (!reasonsGenerated && analysis.writtenOffAmount > 0) {
                     points.push({ text: `रिपोर्टमध्ये <strong>₹ ${new Intl.NumberFormat('en-IN').format(analysis.writtenOffAmount)}</strong> इतकी 'राईट-ऑफ' रक्कम आढळली आहे.`, type: "negative" });
                 }
                 if (!reasonsGenerated && analysis.pastDueAccounts > 0 && analysis.pastDueCompanies.length === 0) {
                      points.push({ text: `रिपोर्टमध्ये <strong>${analysis.pastDueAccounts}</strong> 'पास्ट ड्यू' (थकीत) खाती आढळली आहेत.`, type: "negative" });
                 }
-
                 points.push({ text: `त्यामुळे, कर्ज मंजुरीचा निर्णय मॅनेजरांनी सर्व बाबी तपासून काळजीपूर्वक घ्यावा.`, type: "neutral" });
             } 
             else if (analysis.totalBalance > 120000) { recommendationText = "हाय रिस्क (High Risk)"; recommendationClass = "recommendation-negative"; points.push({ text: `एकूण बाकी रक्कम ₹ ${new Intl.NumberFormat('en-IN').format(analysis.totalBalance)} आहे (१,२०,००० पेक्षा जास्त).`, type: "negative" }); } 
@@ -285,7 +320,41 @@
             return { recommendation: recommendationText, class: recommendationClass, points: points };
         }
 
-        function renderChart(analysis) { const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN').format(num)}`; const maxVal = Math.max(analysis.totalBalance, analysis.overdueAmount, analysis.writtenOffAmount, 1); document.getElementById('bar-balance').style.height = `${(analysis.totalBalance / maxVal) * 100}%`; document.getElementById('bar-overdue').style.height = `${(analysis.overdueAmount / maxVal) * 100}%`; document.getElementById('bar-writtenoff').style.height = `${(analysis.writtenOffAmount / maxVal) * 100}%`; document.getElementById('value-balance').textContent = formatCurrency(analysis.totalBalance); document.getElementById('value-overdue').textContent = formatCurrency(analysis.overdueAmount); document.getElementById('value-writtenoff').textContent = formatCurrency(analysis.writtenOffAmount); }
+        function renderDonutChart(analysis) {
+            const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN').format(num)}`;
+            const { totalBalance, overdueAmount, writtenOffAmount } = analysis;
+            const totalDebt = totalBalance + overdueAmount + writtenOffAmount;
+
+            document.getElementById('chart-total-debt').textContent = formatCurrency(totalDebt);
+            document.getElementById('legend-balance').textContent = formatCurrency(totalBalance);
+            document.getElementById('legend-overdue').textContent = formatCurrency(overdueAmount);
+            document.getElementById('legend-writtenoff').textContent = formatCurrency(writtenOffAmount);
+            
+            if (totalDebt === 0) {
+                document.getElementById('chart-arc-balance').setAttribute('stroke-dasharray', '0, 100');
+                document.getElementById('chart-arc-overdue').setAttribute('stroke-dasharray', '0, 100');
+                document.getElementById('chart-arc-writtenoff').setAttribute('stroke-dasharray', '0, 100');
+                return;
+            }
+
+            const balancePercent = (totalBalance / totalDebt) * 100;
+            const overduePercent = (overdueAmount / totalDebt) * 100;
+            const writtenOffPercent = (writtenOffAmount / totalDebt) * 100;
+
+            let balanceOffset = 0;
+            let overdueOffset = balancePercent;
+            let writtenOffOffset = balancePercent + overduePercent;
+
+            document.getElementById('chart-arc-balance').setAttribute('stroke-dasharray', `${balancePercent}, 100`);
+            document.getElementById('chart-arc-balance').setAttribute('stroke-dashoffset', -balanceOffset);
+
+            document.getElementById('chart-arc-overdue').setAttribute('stroke-dasharray', `${overduePercent}, 100`);
+            document.getElementById('chart-arc-overdue').setAttribute('stroke-dashoffset', -overdueOffset);
+            
+            document.getElementById('chart-arc-writtenoff').setAttribute('stroke-dasharray', `${writtenOffPercent}, 100`);
+            document.getElementById('chart-arc-writtenoff').setAttribute('stroke-dashoffset', -writtenOffOffset);
+        }
+
         function displayReport(analysis) {
             const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN').format(num)}`;
             document.getElementById('headerCustomerName').textContent = analysis.name.toUpperCase();
@@ -309,7 +378,7 @@
             decision.points.forEach(point => { const li = document.createElement('li'); li.innerHTML = point.text; li.classList.add(point.type); pointsList.appendChild(li); });
             document.getElementById('reportDate').textContent = new Date().toLocaleString('mr-IN', { dateStyle: 'short', timeStyle: 'medium' });
             document.getElementById('report-container').classList.remove('hidden');
-            renderChart(analysis); 
+            renderDonutChart(analysis); 
         }
         function printReport() { window.print(); }
     </script>
