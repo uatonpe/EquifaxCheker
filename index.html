@@ -255,7 +255,6 @@
 
         function calculateAge(dobString, reportDateString) { try { const [dobDay, dobMonth, dobYear] = dobString.split('-').map(Number); const [repDay, repMonth, repYear] = reportDateString.split('-').map(Number); const dob = new Date(dobYear, dobMonth - 1, dobDay); const reportDate = new Date(repYear, repMonth - 1, repDay); let age = reportDate.getFullYear() - dob.getFullYear(); const m = reportDate.getMonth() - dob.getMonth(); if (m < 0 || (m === 0 && reportDate.getDate() < dob.getDate())) { age--; } return age; } catch (e) { return 0; } }
         
-        // UPDATED: Most robust parsing logic yet
         function analyzeCreditReportText(text) {
             const result = { name: "माहिती आढळली नाही", score: "N/A", age: 0, openAccounts: 0, pastDueAccounts: 0, totalBalance: 0, overdueAmount: 0, monthlyInstallment: 0, writtenOffAmount: 0, otherCompanyOpenAccounts: 0, pastDueCompanies: [], negativeAccounts: [], activeLoanDetails: [], recordNotFound: false, queriedName: "" };
             
@@ -282,11 +281,11 @@
             if (nameMatch && nameMatch[1]) {
                 let fullName = nameMatch[1].trim();
                 const len = fullName.length;
-                if (len > 0 && len % 2 === 0) {
+                if (len > 1 && len % 2 === 0) {
                     const mid = len / 2;
                     const firstHalf = fullName.substring(0, mid).trim();
                     const secondHalf = fullName.substring(mid).trim();
-                    if (firstHalf === secondHalf && firstHalf.length > 0) {
+                    if (firstHalf === secondHalf) {
                         result.name = firstHalf; 
                     } else {
                         result.name = fullName;
@@ -295,7 +294,6 @@
                     result.name = fullName;
                 }
             }
-
 
             result.score = (cleanText.match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
             
@@ -306,7 +304,7 @@
                 const status = statusMatch ? statusMatch[1].toLowerCase() : '';
 
                 const institutionMatch = block.match(/Institution\s*:\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount)/i);
-                let companyName = "Balance of MFI Loan";
+                let companyName = "अज्ञात कंपनी";
                 if(institutionMatch && institutionMatch[1]) {
                     companyName = institutionMatch[1].replace(/Pvt\s*Ltd|Private\s*Limited|Limited|Services|Finance|Finance Bank/ig, '').trim();
                 }
