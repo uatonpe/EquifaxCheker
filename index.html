@@ -255,8 +255,10 @@
 
         function calculateAge(dobString, reportDateString) { try { const [dobDay, dobMonth, dobYear] = dobString.split('-').map(Number); const [repDay, repMonth, repYear] = reportDateString.split('-').map(Number); const dob = new Date(dobYear, dobMonth - 1, dobDay); const reportDate = new Date(repYear, repMonth - 1, repDay); let age = reportDate.getFullYear() - dob.getFullYear(); const m = reportDate.getMonth() - dob.getMonth(); if (m < 0 || (m === 0 && reportDate.getDate() < dob.getDate())) { age--; } return age; } catch (e) { return 0; } }
         
+        // UPDATED: Completely new logic to parse loans robustly
         function analyzeCreditReportText(text) {
             const result = { name: "माहिती आढळली नाही", score: "N/A", age: 0, openAccounts: 0, pastDueAccounts: 0, totalBalance: 0, overdueAmount: 0, monthlyInstallment: 0, writtenOffAmount: 0, otherCompanyOpenAccounts: 0, pastDueCompanies: [], negativeAccounts: [], activeLoanDetails: [], recordNotFound: false, queriedName: "" };
+            
             if (text.includes('Consumer record not found')) {
                 result.recordNotFound = true;
                 result.name = "माहिती आढळली नाही";
@@ -266,34 +268,79 @@
                 }
                 return result;
             }
-            let cleanText = text; const legendMarker = "Glossary, Terms and Explanations:"; const markerIndex = text.indexOf(legendMarker); if (markerIndex !== -1) { cleanText = text.substring(0, markerIndex); }
-            const dobMatch = cleanText.match(/DOB:\s*(\d{2}-\d{2}-\d{4})/i); const reportDateMatch = cleanText.match(/DATE:\s*(\d{2}-\d{2}-\d{4})/i); if (dobMatch && reportDateMatch) { result.age = calculateAge(dobMatch[1], reportDateMatch[1]); }
-            const normalizedText = cleanText.toLowerCase().replace(/\s+/g, ' ');
-            if (normalizedText.includes('credit report summary')) { result.pastDueAccounts = parseInt(normalizedText.match(/number of past due accounts\s*:\s*(\d+)/)?.[1] || '0', 10); result.totalBalance = parseFloat(normalizedText.match(/total balance amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0'); result.overdueAmount = parseFloat(normalizedText.match(/total past due amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0'); result.monthlyInstallment = parseFloat(normalizedText.match(/total monthly instmt amt\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0'); result.writtenOffAmount = parseFloat(normalizedText.match(/total written off amount\s*:\s*(?:rs\.\s*)?([\d,.]+)/)?.[1].replace(/,/g, '') || '0'); }
-            const nameRegex = /Consumer Name:\s*([A-Z\s]+?)(?=Personal Information|Identification|Family Details|Consumer Address|DOB:)/i; 
-            const nameMatch = cleanText.match(nameRegex);
-            if (nameMatch && nameMatch[1]) { result.name = nameMatch[1].trim(); }
-            result.score = (cleanText.match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
-            const accountChunks = cleanText.split(/Institution\s*:/);
-            if (accountChunks.length > 1) {
-                let openAccountsCounter = 0;
-                for (let i = 1; i < accountChunks.length; i++) {
-                    const chunk = accountChunks[i]; const institutionNameMatch = chunk.match(/^\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount|Current Balance)/i); let companyName = ""; if (institutionNameMatch && institutionNameMatch[1]) { companyName = institutionNameMatch[1].replace(/Pvt\s*Ltd|Private\s*Limited|Limited|Services|Finance|Finance Bank/ig, '').trim(); }
-                    const statusLineMatch = chunk.match(/Status\s*:(.*?)(?=Disbursed Amount|Last Payment Date)/i); const statusLine = statusLineMatch ? statusLineMatch[1].toLowerCase() : '';
-                    if (statusLine.includes('current') || statusLine.includes('past due')) {
-                        openAccountsCounter++;
-                        if (!/anik/i.test(companyName)) { result.otherCompanyOpenAccounts++; }
-                        const currentBalanceMatch = chunk.match(/Current Balance\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
-                        const currentBalance = currentBalanceMatch ? parseFloat(currentBalanceMatch[1].replace(/,/g, '')) : 0;
-                        if (companyName) result.activeLoanDetails.push({ company: companyName, balance: currentBalance });
-                    }
-                    const historyLineMatch = chunk.match(/History 24 Months\s*:(.*?)(?=Name:|$)/i); const historyLine = historyLineMatch ? historyLineMatch[1].toLowerCase() : '';
-                    if (statusLine.includes('past due')) { if (companyName && !result.pastDueCompanies.includes(companyName)) { result.pastDueCompanies.push(companyName); } }
-                    let reason = null; if (statusLine.includes('written off')) { reason = 'राईट-ऑफ'; } else if (statusLine.includes('settled')) { reason = 'सेटल'; } else if (historyLine.includes('sub')) { reason = 'सब-स्टँडर्ड'; } else if (historyLine.includes('wdf') || historyLine.includes('dbf')) { reason = 'डाउटफुल'; }
-                    if (reason && companyName && !result.negativeAccounts.some(acc => acc.company === companyName)) { result.negativeAccounts.push({ company: companyName, reason: reason }); }
-                }
-                result.openAccounts = openAccountsCounter;
+
+            let cleanText = text.replace(/Disbursed Amount/g, ' Disbursed Amount'); // Add space for easier splitting
+            
+            const dobMatch = cleanText.match(/DOB:\s*(\d{2}-\d{2}-\d{4})/i); 
+            const reportDateMatch = cleanText.match(/DATE:\s*(\d{2}-\d{2}-\d{4})/i); 
+            if (dobMatch && reportDateMatch) { 
+                result.age = calculateAge(dobMatch[1], reportDateMatch[1]); 
             }
+
+            const nameRegex = /Name:\s*([A-Z\s]+?)(?=DOB:|Ration card)/i;
+            const nameMatch = cleanText.match(nameRegex);
+            if (nameMatch && nameMatch[1]) {
+                result.name = nameMatch[1].trim().replace(/\s*HORAT\s*$/, ''); // Remove surname if present
+            }
+
+            result.score = (cleanText.match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
+            
+            // --- New Parsing Logic: Split the report by "Acct #" or "Institution :" ---
+            // This treats each loan as a distinct block of text.
+            const loanBlocks = cleanText.split(/(?=Acct # |Institution\s*:)/);
+
+            for(const block of loanBlocks) {
+                const statusMatch = block.match(/Status\s*:\s*(Current Account|Past Due|Written Off|Settled)/i);
+                const status = statusMatch ? statusMatch[1].toLowerCase() : '';
+
+                const institutionMatch = block.match(/Institution\s*:\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount)/i);
+                let companyName = "MFI Loan Balance";
+                if(institutionMatch && institutionMatch[1]) {
+                    companyName = institutionMatch[1].replace(/Pvt\s*Ltd|Private\s*Limited|Limited|Services|Finance|Finance Bank/ig, '').trim();
+                }
+
+                if (status.includes('written off')) {
+                     if (!result.negativeAccounts.some(acc => acc.company === companyName)) {
+                        result.negativeAccounts.push({ company: companyName, reason: 'राईट-ऑफ' });
+                    }
+                } else if (status.includes('settled')) {
+                     if (!result.negativeAccounts.some(acc => acc.company === companyName)) {
+                        result.negativeAccounts.push({ company: companyName, reason: 'सेटल' });
+                    }
+                }
+
+                // Only process active loans (Current or Past Due) for balance calculations
+                if(status.includes('current') || status.includes('past due')) {
+                    let balance = 0;
+                    const balanceMatch = block.match(/Current Balance\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+                    if (balanceMatch && balanceMatch[1]) {
+                        balance = parseFloat(balanceMatch[1].replace(/,/g, ''));
+                    }
+                    
+                    if (balance > 0 || (institutionMatch && institutionMatch[1])) {
+                         // Avoid adding duplicates if a block somehow gets split
+                        if (!result.activeLoanDetails.some(l => l.company === companyName && l.balance === balance)) {
+                            result.activeLoanDetails.push({ company: companyName, balance: balance });
+                        }
+                    }
+
+                    if (status.includes('past due')) {
+                        if (companyName !== "अज्ञात कंपनी" && !result.pastDueCompanies.includes(companyName)) {
+                            result.pastDueCompanies.push(companyName);
+                        }
+                        result.pastDueAccounts +=1;
+                    }
+                }
+            }
+
+            // --- Final Calculations ---
+            result.openAccounts = result.activeLoanDetails.length;
+            result.otherCompanyOpenAccounts = result.activeLoanDetails.filter(loan => !/anik/i.test(loan.company)).length;
+            result.totalBalance = result.activeLoanDetails.reduce((sum, loan) => sum + loan.balance, 0);
+            
+            const emiMatch = cleanText.match(/Installment Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+            if (emiMatch) result.monthlyInstallment = parseFloat(emiMatch[1].replace(/,/g, ''));
+
             return result;
         }
         
@@ -382,7 +429,7 @@
             return { recommendation: recommendationText, class: recommendationClass, points: points, recommendedLoanAmount: recommendedLoanAmount };
         }
 
-        function renderDonutChart(analysis) { const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN', {maximumFractionDigits: 0}).format(num)}`; const { totalBalance, overdueAmount, writtenOffAmount } = analysis; const totalDebt = totalBalance + overdueAmount + writtenOffAmount; document.getElementById('chart-total-debt').textContent = formatCurrency(totalDebt); document.getElementById('legend-balance').textContent = formatCurrency(totalBalance); document.getElementById('legend-overdue').textContent = formatCurrency(overdueAmount); document.getElementById('legend-writtenoff').textContent = formatCurrency(writtenOffAmount); if (totalDebt === 0) { ['balance', 'overdue', 'writtenoff'].forEach(id => document.getElementById(`chart-arc-${id}`).setAttribute('stroke-dasharray', '0, 100')); return; } const balancePercent = (totalBalance / totalDebt) * 100; const overduePercent = (overdueAmount / totalDebt) * 100; const writtenOffPercent = (writtenOffAmount / totalDebt) * 100; let overdueOffset = balancePercent; let writtenOffOffset = balancePercent + overdueOffset; document.getElementById('chart-arc-balance').setAttribute('stroke-dasharray', `${balancePercent}, 100`); document.getElementById('chart-arc-balance').setAttribute('style', `stroke-dashoffset: 0`); document.getElementById('chart-arc-overdue').setAttribute('stroke-dasharray', `${overduePercent}, 100`); document.getElementById('chart-arc-overdue').setAttribute('style', `stroke-dashoffset: ${-overdueOffset}`); document.getElementById('chart-arc-writtenoff').setAttribute('stroke-dasharray', `${writtenOffPercent}, 100`); document.getElementById('chart-arc-writtenoff').setAttribute('style', `stroke-dashoffset: ${-writtenOffOffset}`); }
+        function renderDonutChart(analysis) { const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN', {maximumFractionDigits: 0}).format(num)}`; const { totalBalance, overdueAmount, writtenOffAmount } = analysis; const totalDebt = totalBalance + overdueAmount + writtenOffAmount; document.getElementById('chart-total-debt').textContent = formatCurrency(totalDebt); document.getElementById('legend-balance').textContent = formatCurrency(totalBalance); document.getElementById('legend-overdue').textContent = formatCurrency(overdueAmount); document.getElementById('legend-writtenoff').textContent = formatCurrency(writtenOffAmount); if (totalDebt === 0) { ['balance', 'overdue', 'writtenoff'].forEach(id => document.getElementById(`chart-arc-${id}`).setAttribute('stroke-dasharray', '0, 100')); return; } const balancePercent = (totalBalance / totalDebt) * 100; const overduePercent = (overdueAmount / totalDebt) * 100; const writtenOffPercent = (writtenOffAmount / totalDebt) * 100; let overdueOffset = balancePercent; let writtenOffOffset = balancePercent + overdueOffset; document.getElementById('chart-arc-balance').setAttribute('stroke-dasharray', `${balancePercent}, 100`); document.getElementById('chart-arc-balance').setAttribute('style', `stroke-dashoffset: 0`); document.getElementById('chart-arc-overdue').setAttribute('stroke-dasharray', `${overduePercent}, 100`); document.getElementById('chart-arc-overdue').setAttribute('style', `stroke-dashoffset: ${-writtenOffOffset}`); document.getElementById('chart-arc-writtenoff').setAttribute('stroke-dasharray', `${writtenOffPercent}, 100`); document.getElementById('chart-arc-writtenoff').setAttribute('style', `stroke-dashoffset: ${-writtenOffOffset}`); }
         
         function displayReport(analysis) {
             const formatCurrency = (num) => `₹ ${new Intl.NumberFormat('en-IN', {maximumFractionDigits: 0}).format(num)}`;
@@ -410,7 +457,7 @@
             const decision = generateDecision(analysis);
             const recommendationBox = document.getElementById('recommendation-box');
             recommendationBox.className = ''; recommendationBox.classList.add(decision.class);
-            document.getElementById('recommendation').textContent = decision.recommendation; // CORRECTED LINE
+            document.getElementById('recommendation').textContent = decision.recommendation;
             
             const recommendedAmountContainer = document.getElementById('recommended-amount-container');
             if(decision.recommendedLoanAmount === "शिफारस नाही" || decision.recommendedLoanAmount === "निर्णय प्रलंबित") {
