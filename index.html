@@ -300,7 +300,7 @@
             const loanBlocks = cleanText.split(/(?=Acct # |Institution\s*:)/);
 
             for(const block of loanBlocks) {
-                const statusMatch = block.match(/Status\s*:\s*(Current Account|Past Due|Written Off|Settled)/i);
+                const statusMatch = block.match(/Status\s*:\s*([\w\s\/]+)/i);
                 const status = statusMatch ? statusMatch[1].toLowerCase() : '';
 
                 const institutionMatch = block.match(/Institution\s*:\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount)/i);
@@ -308,25 +308,27 @@
                 if(institutionMatch && institutionMatch[1]) {
                     companyName = institutionMatch[1].replace(/Pvt\s*Ltd|Private\s*Limited|Limited|Services|Finance|Finance Bank/ig, '').trim();
                 }
-
-                if (status.includes('written off')) {
+                
+                if (status.includes('written off') || status.includes('charge off')) {
                      if (!result.negativeAccounts.some(acc => acc.company === companyName)) {
-                        result.negativeAccounts.push({ company: companyName, reason: 'राईट-ऑफ' });
-                    }
+                        result.negativeAccounts.push({ company: companyName, reason: 'राईट-ऑफ / चार्ज-ऑफ' });
+                     }
+                     const woaMatch = block.match(/Write-off Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+                     if(woaMatch && woaMatch[1]){
+                        result.writtenOffAmount += parseFloat(woaMatch[1].replace(/,/g, ''));
+                     }
                 } else if (status.includes('settled')) {
                      if (!result.negativeAccounts.some(acc => acc.company === companyName)) {
                         result.negativeAccounts.push({ company: companyName, reason: 'सेटल' });
                     }
-                }
-
-                if(status.includes('current') || status.includes('past due')) {
+                } else if(status.includes('current') || status.includes('past due')) {
                     let balance = 0;
                     const balanceMatch = block.match(/Current Balance\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
                     if (balanceMatch && balanceMatch[1]) {
                         balance = parseFloat(balanceMatch[1].replace(/,/g, ''));
                     }
                     
-                    if (balance > 0 || (institutionMatch && institutionMatch[1])) {
+                    if (balance > 0 || (companyName !== "अज्ञात कंपनी")) {
                         if (!result.activeLoanDetails.some(l => Math.abs(l.balance - balance) < 1.0)) {
                            result.activeLoanDetails.push({ company: companyName, balance: balance });
                         }
@@ -336,16 +338,25 @@
                         if (companyName !== "अज्ञात कंपनी" && !result.pastDueCompanies.includes(companyName)) {
                             result.pastDueCompanies.push(companyName);
                         }
-                        result.pastDueAccounts +=1;
+                        result.pastDueAccounts += 1;
+                        const pdaMatch = block.match(/Past Due Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+                        if(pdaMatch && pdaMatch[1]){
+                           result.overdueAmount += parseFloat(pdaMatch[1].replace(/,/g, ''));
+                        }
                     }
                 }
+            }
+            
+            const summaryWoaMatch = cleanText.match(/Total Written Off Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+            if (summaryWoaMatch) {
+                result.writtenOffAmount = Math.max(result.writtenOffAmount, parseFloat(summaryWoaMatch[1].replace(/,/g, '')));
             }
 
             result.openAccounts = result.activeLoanDetails.length;
             result.otherCompanyOpenAccounts = result.activeLoanDetails.filter(loan => !/anik/i.test(loan.company) && loan.company !== "अज्ञात कंपनी").length;
             result.totalBalance = result.activeLoanDetails.reduce((sum, loan) => sum + loan.balance, 0);
             
-            const emiMatch = cleanText.match(/Installment Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+            const emiMatch = cleanText.match(/Total Monthly Instmt Amt\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
             if (emiMatch) result.monthlyInstallment = parseFloat(emiMatch[1].replace(/,/g, ''));
 
             return result;
