@@ -262,9 +262,7 @@
                 result.recordNotFound = true;
                 result.name = "माहिती आढळली नाही";
                 let nameMatch = text.match(/Consumer’s Full Name\s*:\s*([A-Za-z\s]+)/i) || text.match(/Consumer’s First Name\s*:\s*([A-Za-z\s]+)/i);
-                if (nameMatch && nameMatch[1]) {
-                    result.queriedName = nameMatch[1].trim();
-                }
+                if (nameMatch && nameMatch[1]) { result.queriedName = nameMatch[1].trim(); }
                 return result;
             }
 
@@ -272,9 +270,7 @@
             
             const dobMatch = cleanText.match(/DOB:\s*(\d{2}-\d{2}-\d{4})/i); 
             const reportDateMatch = cleanText.match(/DATE:\s*(\d{2}-\d{2}-\d{4})/i); 
-            if (dobMatch && reportDateMatch) { 
-                result.age = calculateAge(dobMatch[1], reportDateMatch[1]); 
-            }
+            if (dobMatch && reportDateMatch) { result.age = calculateAge(dobMatch[1], reportDateMatch[1]); }
 
             const nameRegex = /(?:Consumer Name:|Name:)\s*([A-Z\s\.]+?)(?=Personal Information|Identification|Family Details|Consumer Address|DOB:|Ration card|UID:|Gender:|Address:)/i;
             const nameMatch = cleanText.match(nameRegex);
@@ -285,14 +281,9 @@
                     const mid = len / 2;
                     const firstHalf = fullName.substring(0, mid).trim();
                     const secondHalf = fullName.substring(mid).trim();
-                    if (firstHalf === secondHalf) {
-                        result.name = firstHalf; 
-                    } else {
-                        result.name = fullName;
-                    }
-                } else {
-                    result.name = fullName;
-                }
+                    if (firstHalf === secondHalf) { result.name = firstHalf; } 
+                    else { result.name = fullName; }
+                } else { result.name = fullName; }
             }
 
             result.score = (cleanText.match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
@@ -300,7 +291,7 @@
             const loanBlocks = cleanText.split(/(?=Acct # |Institution\s*:)/);
 
             for(const block of loanBlocks) {
-                const statusMatch = block.match(/Status\s*:\s*([\w\s\/]+)/i);
+                const statusMatch = block.match(/Status\s*:\s*([\w\s\/-]+)/i); // CORRECTED: Added hyphen
                 const status = statusMatch ? statusMatch[1].toLowerCase() : '';
 
                 const institutionMatch = block.match(/Institution\s*:\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount)/i);
@@ -314,19 +305,17 @@
                         result.negativeAccounts.push({ company: companyName, reason: 'राईट-ऑफ / चार्ज-ऑफ' });
                      }
                      const woaMatch = block.match(/Write-off Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
-                     if(woaMatch && woaMatch[1]){
-                        result.writtenOffAmount += parseFloat(woaMatch[1].replace(/,/g, ''));
-                     }
+                     if(woaMatch && woaMatch[1]){ result.writtenOffAmount += parseFloat(woaMatch[1].replace(/,/g, '')); }
                 } else if (status.includes('settled')) {
                      if (!result.negativeAccounts.some(acc => acc.company === companyName)) {
                         result.negativeAccounts.push({ company: companyName, reason: 'सेटल' });
                     }
-                } else if(status.includes('current') || status.includes('past due')) {
+                }
+                
+                if(status.includes('current') || status.includes('past due')) {
                     let balance = 0;
                     const balanceMatch = block.match(/Current Balance\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
-                    if (balanceMatch && balanceMatch[1]) {
-                        balance = parseFloat(balanceMatch[1].replace(/,/g, ''));
-                    }
+                    if (balanceMatch && balanceMatch[1]) { balance = parseFloat(balanceMatch[1].replace(/,/g, '')); }
                     
                     if (balance > 0 || (companyName !== "अज्ञात कंपनी")) {
                         if (!result.activeLoanDetails.some(l => Math.abs(l.balance - balance) < 1.0)) {
@@ -338,19 +327,18 @@
                         if (companyName !== "अज्ञात कंपनी" && !result.pastDueCompanies.includes(companyName)) {
                             result.pastDueCompanies.push(companyName);
                         }
-                        result.pastDueAccounts += 1;
                         const pdaMatch = block.match(/Past Due Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
-                        if(pdaMatch && pdaMatch[1]){
-                           result.overdueAmount += parseFloat(pdaMatch[1].replace(/,/g, ''));
-                        }
+                        if(pdaMatch && pdaMatch[1]){ result.overdueAmount += parseFloat(pdaMatch[1].replace(/,/g, '')); }
                     }
                 }
             }
             
             const summaryWoaMatch = cleanText.match(/Total Written Off Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
-            if (summaryWoaMatch) {
-                result.writtenOffAmount = Math.max(result.writtenOffAmount, parseFloat(summaryWoaMatch[1].replace(/,/g, '')));
-            }
+            if (summaryWoaMatch) { result.writtenOffAmount = Math.max(result.writtenOffAmount, parseFloat(summaryWoaMatch[1].replace(/,/g, ''))); }
+            const summaryPdaMatch = cleanText.match(/Total Past Due Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+            if (summaryPdaMatch) { result.overdueAmount = Math.max(result.overdueAmount, parseFloat(summaryPdaMatch[1].replace(/,/g, ''))); }
+            const summaryPdCountMatch = cleanText.match(/Number of Past Due Accounts\s*:\s*(\d+)/i);
+            if(summaryPdCountMatch){ result.pastDueAccounts = Math.max(result.pastDueAccounts, parseInt(summaryPdCountMatch[1], 10)); }
 
             result.openAccounts = result.activeLoanDetails.length;
             result.otherCompanyOpenAccounts = result.activeLoanDetails.filter(loan => !/anik/i.test(loan.company) && loan.company !== "अज्ञात कंपनी").length;
