@@ -288,10 +288,22 @@
 
             result.score = (cleanText.match(/(?:cibil|equifax|experian)\s*score\s*:?\s*(\d{3})/) || ["", "N/A"])[1];
             
-            const loanBlocks = cleanText.split(/(?=Acct # |Institution\s*:)/);
+            const initialBlocks = cleanText.split(/(?=Acct # |Institution\s*:)/);
+            const mergedBlocks = [];
 
-            for(const block of loanBlocks) {
-                const statusMatch = block.match(/Status\s*:\s*([\w\s\/-]+)/i); // CORRECTED: Added hyphen
+            initialBlocks.forEach(block => {
+                if(block.trim() === '') return;
+                if (block.trim().startsWith('Institution') && !block.includes('Acct #')) {
+                    if (mergedBlocks.length > 0) {
+                        mergedBlocks[mergedBlocks.length - 1] += ' ' + block;
+                    }
+                } else {
+                    mergedBlocks.push(block);
+                }
+            });
+
+            for(const block of mergedBlocks) {
+                const statusMatch = block.match(/Status\s*:\s*([\w\s\/-]+)/i);
                 const status = statusMatch ? statusMatch[1].toLowerCase() : '';
 
                 const institutionMatch = block.match(/Institution\s*:\s*([\w\s.&]+?)(?=Loan Category|Past Due Amount)/i);
@@ -338,7 +350,7 @@
             const summaryPdaMatch = cleanText.match(/Total Past Due Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
             if (summaryPdaMatch) { result.overdueAmount = Math.max(result.overdueAmount, parseFloat(summaryPdaMatch[1].replace(/,/g, ''))); }
             const summaryPdCountMatch = cleanText.match(/Number of Past Due Accounts\s*:\s*(\d+)/i);
-            if(summaryPdCountMatch){ result.pastDueAccounts = Math.max(result.pastDueAccounts, parseInt(summaryPdCountMatch[1], 10)); }
+            if(summaryPdCountMatch){ result.pastDueAccounts = Math.max(result.pastDueAccounts, result.pastDueCompanies.length, parseInt(summaryPdCountMatch[1], 10)); }
 
             result.openAccounts = result.activeLoanDetails.length;
             result.otherCompanyOpenAccounts = result.activeLoanDetails.filter(loan => !/anik/i.test(loan.company) && loan.company !== "अज्ञात कंपनी").length;
@@ -382,7 +394,7 @@
                 analysis.negativeAccounts.forEach(acc => { points.push({ text: `<strong>${acc.company}</strong> या कंपनीचे कर्ज '<strong>${acc.reason}</strong>' आहे.`, type: "negative" }); reasonsGenerated = true; });
                 if (analysis.pastDueCompanies.length > 0) { points.push({ text: `<strong>${analysis.pastDueCompanies.join(', ')}</strong> या कंपनीचे कर्ज 'पास्ट ड्यू' (थकीत) आहे.`, type: "negative" }); reasonsGenerated = true; }
                 if (!reasonsGenerated && analysis.writtenOffAmount > 0) { points.push({ text: `रिपोर्टमध्ये <strong>₹ ${formatCurrencyForPoints(analysis.writtenOffAmount)}</strong> इतकी 'राईट-ऑफ' रक्कम आढळली आहे.`, type: "negative" }); }
-                if (!reasonsGenerated && analysis.pastDueAccounts > 0 && analysis.pastDueCompanies.length === 0) { points.push({ text: `रिपोर्टमध्ये <strong>${analysis.pastDueAccounts}</strong> 'पास्ट ड्यू' (थकीत) खाती आढळली आहेत.`, type: "negative" }); }
+                if (!reasonsGenerated && analysis.pastDueAccounts > 0) { points.push({ text: `रिपोर्टमध्ये <strong>${analysis.pastDueAccounts}</strong> 'पास्ट ड्यू' (थकीत) खाती आढळली आहेत.`, type: "negative" }); }
                 points.push({ text: `त्यामुळे, कर्ज मंजुरीचा निर्णय मॅनेजरांनी सर्व बाबी तपासून काळजीपूर्वक घ्यावा.`, type: "neutral" });
                 return { recommendation: recommendationText, class: recommendationClass, points: points, recommendedLoanAmount: recommendedLoanAmount };
             }
