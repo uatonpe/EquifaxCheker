@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="mr">
 <head>
@@ -302,6 +304,9 @@
                 }
             });
 
+            // New Account should be counted exactly like active exposure everywhere.
+            // It will be visible in count, loan exposure list, total balance, EMI and decision points.
+            let calculatedMonthlyInstallment = 0;
             for(const block of mergedBlocks) {
                 const statusMatch = block.match(/Status\s*:\s*([\w\s\/-]+)/i);
                 const status = statusMatch ? statusMatch[1].toLowerCase() : '';
@@ -310,6 +315,37 @@
                 let companyName = "अज्ञात कंपनी";
                 if(institutionMatch && institutionMatch[1]) {
                     companyName = institutionMatch[1].replace(/Pvt\s*Ltd|Private\s*Limited|Limited|Services|Finance|Finance Bank/ig, '').trim();
+                }
+
+                if (status.includes('new account')) {
+                    let newAccountAmount = 0;
+                    const newAmountMatch = block.match(/Current Balance\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i)
+                        || block.match(/Disbursed Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i)
+                        || block.match(/Sanction Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+                    if (newAmountMatch && newAmountMatch[1]) {
+                        newAccountAmount = parseFloat(newAmountMatch[1].replace(/,/g, ''));
+                    }
+
+                    let newAccountInstallment = 0;
+                    const newInstallmentMatch = block.match(/Installment Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+                    if (newInstallmentMatch && newInstallmentMatch[1]) {
+                        newAccountInstallment = parseFloat(newInstallmentMatch[1].replace(/,/g, ''));
+                    }
+
+                    if (newAccountAmount > 0 || companyName !== "अज्ञात कंपनी") {
+                        const duplicateNew = result.activeLoanDetails.some(l =>
+                            l.isNewAccount && l.company === companyName && Math.abs(l.balance - newAccountAmount) < 1.0
+                        );
+                        if (!duplicateNew) {
+                            result.activeLoanDetails.push({
+                                company: companyName,
+                                balance: newAccountAmount,
+                                installment: newAccountInstallment,
+                                isNewAccount: true
+                            });
+                            calculatedMonthlyInstallment += newAccountInstallment;
+                        }
+                    }
                 }
                 
                 if (status.includes('written off') || status.includes('charge off')) {
@@ -329,9 +365,16 @@
                     const balanceMatch = block.match(/Current Balance\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
                     if (balanceMatch && balanceMatch[1]) { balance = parseFloat(balanceMatch[1].replace(/,/g, '')); }
                     
+                    let installmentAmount = 0;
+                    const installmentMatch = block.match(/Installment Amount\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
+                    if (installmentMatch && installmentMatch[1]) {
+                        installmentAmount = parseFloat(installmentMatch[1].replace(/,/g, ''));
+                    }
+
                     if (balance > 0 || (companyName !== "अज्ञात कंपनी")) {
-                        if (!result.activeLoanDetails.some(l => Math.abs(l.balance - balance) < 1.0)) {
-                           result.activeLoanDetails.push({ company: companyName, balance: balance });
+                        if (!result.activeLoanDetails.some(l => !l.isNewAccount && l.company === companyName && Math.abs(l.balance - balance) < 1.0)) {
+                           result.activeLoanDetails.push({ company: companyName, balance: balance, installment: installmentAmount });
+                           calculatedMonthlyInstallment += installmentAmount;
                         }
                     }
 
@@ -354,10 +397,14 @@
 
             result.openAccounts = result.activeLoanDetails.length;
             result.otherCompanyOpenAccounts = result.activeLoanDetails.filter(loan => !/anik/i.test(loan.company) && loan.company !== "अज्ञात कंपनी").length;
+            // New Account amount is now included in overall total, chart and decision logic.
             result.totalBalance = result.activeLoanDetails.reduce((sum, loan) => sum + loan.balance, 0);
             
             const emiMatch = cleanText.match(/Total Monthly Instmt Amt\s*:\s*(?:Rs\.\s*)?([\d,.]+)/i);
             if (emiMatch) result.monthlyInstallment = parseFloat(emiMatch[1].replace(/,/g, ''));
+            if (calculatedMonthlyInstallment > result.monthlyInstallment) {
+                result.monthlyInstallment = calculatedMonthlyInstallment;
+            }
 
             return result;
         }
@@ -494,7 +541,7 @@
             if (analysis.activeLoanDetails.length > 0) {
                 analysis.activeLoanDetails.forEach(loan => {
                     const row = exposureTbody.insertRow();
-                    row.insertCell(0).textContent = loan.company;
+                    row.insertCell(0).textContent = loan.isNewAccount ? `${loan.company} (नवीन खाते)` : loan.company;
                     row.insertCell(1).textContent = formatCurrency(loan.balance);
                 });
             } else {
