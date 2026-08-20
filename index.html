@@ -1,4 +1,6 @@
 
+
+
 <!DOCTYPE html>
 <html lang="mr">
 <head>
@@ -948,6 +950,230 @@
                 print-color-adjust: exact !important;
             }
         }
+    
+
+        /* ===== MFI / BUSINESS MODE EXTENSION ===== */
+        .credit-mode-shell { margin-top:20px; }
+        .credit-mode-tabs {
+            display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:8px;
+            border-radius:18px; background:#edf2fb; border:1px solid var(--slate-200);
+            max-width:520px; margin:0 auto 14px;
+        }
+        .credit-mode-btn {
+            border:0; box-shadow:none; padding:13px 18px; border-radius:13px;
+            background:transparent; color:var(--slate-700); font-weight:800;
+        }
+        .credit-mode-btn:hover { transform:none; box-shadow:none; }
+        .credit-mode-btn.active {
+            background:#fff; color:var(--anik-blue-800); box-shadow:0 7px 18px rgba(19,34,67,.10);
+        }
+        .mode-panel { animation:fadeIn .22s ease both; }
+        .mode-heading { margin:0 0 5px; font-size:1.08rem; color:var(--slate-950); font-weight:800; }
+        .mode-help { margin:0 0 16px; color:var(--slate-600); line-height:1.55; }
+        .business-upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .file-role-box {
+            border:1px solid var(--slate-200); background:var(--slate-050); border-radius:18px; padding:15px;
+        }
+        .file-role-title { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:10px; }
+        .file-role-title strong { color:var(--slate-950); }
+        .role-pill { font-size:.76rem; font-weight:800; padding:6px 10px; border-radius:999px; background:var(--anik-blue-100); color:var(--anik-blue-800); }
+        .business-action-row { display:grid; grid-template-columns:1fr auto; gap:14px; align-items:center; margin-top:14px; }
+        .business-action-row .password-wrap { display:grid; grid-template-columns:1fr; gap:6px; }
+        .field-note { color:var(--slate-600); font-size:.78rem; font-weight:600; }
+
+        #business-report-container { margin-top:20px; animation:fadeIn .35s ease both; }
+        .business-report-root {
+            border:1px solid var(--slate-200); border-radius:30px; padding:22px;
+            background:linear-gradient(180deg,#fff,#f8fafc); overflow:hidden;
+        }
+        .business-report-header {
+            display:flex; align-items:flex-start; justify-content:space-between; gap:18px; flex-wrap:wrap;
+            border-radius:24px; padding:20px 22px; color:#fff;
+            background:linear-gradient(125deg,#0c2250 0%,#1f3a9d 62%,#ef170d 145%);
+        }
+        .business-report-header h2 { margin:0; font-size:1.45rem; line-height:1.2; }
+        .business-report-header p { margin:7px 0 0; color:rgba(255,255,255,.82); line-height:1.5; }
+        .business-header-meta { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
+        .business-header-chip { padding:8px 11px; border-radius:999px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.12); font-size:.8rem; font-weight:800; }
+
+        .common-decision-card {
+            margin-top:16px; border-radius:24px; padding:20px; border:1px solid var(--slate-200); background:#fff;
+            box-shadow:var(--shadow-sm);
+        }
+        .common-decision-top { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; flex-wrap:wrap; }
+        .common-decision-top h3 { margin:0; color:var(--slate-950); font-size:1.22rem; }
+        .common-decision-top p { margin:7px 0 0; color:var(--slate-600); line-height:1.5; }
+        .business-risk-badge { display:inline-flex; padding:9px 13px; border-radius:999px; font-weight:900; font-size:.82rem; white-space:nowrap; }
+        .risk-grade-a { background:#ecfdf3; color:#166534; border:1px solid #bbebca; }
+        .risk-grade-b { background:#eef6ff; color:#1d4ed8; border:1px solid #c8ddff; }
+        .risk-grade-c { background:#fff7e8; color:#9a5208; border:1px solid #f7dda5; }
+        .risk-grade-d { background:#fff0ee; color:#b42318; border:1px solid #ffc8c0; }
+
+        .common-kpis { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin-top:16px; }
+        .common-kpi { border:1px solid var(--slate-200); background:var(--slate-050); border-radius:16px; padding:13px; min-width:0; }
+        .common-kpi .ck-label { color:var(--slate-600); font-size:.76rem; font-weight:800; line-height:1.35; }
+        .common-kpi .ck-value { margin-top:7px; color:var(--slate-950); font-weight:900; font-size:1.12rem; overflow-wrap:anywhere; }
+        .common-kpi .ck-sub { margin-top:5px; color:var(--slate-600); font-size:.72rem; font-weight:600; }
+
+        .common-analysis-grid { display:grid; grid-template-columns:1.08fr .92fr; gap:16px; margin-top:16px; }
+        .business-section-card { border:1px solid var(--slate-200); background:#fff; border-radius:22px; padding:18px; }
+        .business-section-card h4 { margin:0 0 12px; color:var(--anik-blue-800); font-size:1.02rem; }
+        .analysis-points { list-style:none; margin:0; padding:0; display:grid; gap:9px; }
+        .analysis-points li { padding:11px 12px; border-radius:13px; background:var(--slate-050); border:1px solid var(--slate-200); color:var(--slate-700); line-height:1.5; font-size:.9rem; }
+        .analysis-points li.critical { background:#fff0ee; border-color:#ffd0ca; color:#8f1d16; }
+        .analysis-points li.warning { background:#fff7e8; border-color:#f9dfa7; color:#854d0e; }
+        .analysis-points li.positive { background:#ecfdf3; border-color:#c5ead1; color:#166534; }
+
+        .person-reports-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px; }
+        .business-person-card { border:1px solid var(--slate-200); background:#fff; border-radius:24px; padding:18px; box-shadow:var(--shadow-sm); min-width:0; }
+        .person-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+        .person-card-head .role { color:var(--anik-blue-800); text-transform:uppercase; font-size:.76rem; font-weight:900; letter-spacing:.05em; }
+        .person-card-head h3 { margin:5px 0 0; color:var(--slate-950); font-size:1.18rem; overflow-wrap:anywhere; }
+        .person-card-head .smallmeta { margin:5px 0 0; color:var(--slate-600); font-size:.82rem; }
+        .person-score-box { text-align:right; min-width:92px; }
+        .person-score-box .score { font-size:1.6rem; font-weight:900; color:var(--slate-950); line-height:1; }
+        .person-score-box .source { margin-top:5px; font-size:.72rem; color:var(--slate-600); font-weight:700; }
+
+        .person-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin-top:14px; }
+        .person-kpi { border:1px solid var(--slate-200); background:var(--slate-050); border-radius:14px; padding:11px; }
+        .person-kpi .pk-label { color:var(--slate-600); font-size:.7rem; font-weight:800; }
+        .person-kpi .pk-value { margin-top:5px; font-weight:900; color:var(--slate-950); font-size:.97rem; overflow-wrap:anywhere; }
+        .person-alert { margin-top:12px; padding:11px 12px; border-radius:13px; font-size:.84rem; font-weight:700; line-height:1.45; }
+        .person-alert.ok { background:#ecfdf3; color:#166534; border:1px solid #c5ead1; }
+        .person-alert.warn { background:#fff7e8; color:#854d0e; border:1px solid #f9dfa7; }
+        .person-alert.bad { background:#fff0ee; color:#8f1d16; border:1px solid #ffd0ca; }
+
+        .business-table-wrap { overflow:auto; margin-top:14px; border:1px solid var(--slate-200); border-radius:16px; }
+        .business-table { width:100%; border-collapse:collapse; min-width:660px; }
+        .business-table th { text-align:left; padding:10px 11px; background:#eef3fb; color:var(--slate-700); font-size:.76rem; font-weight:900; white-space:nowrap; }
+        .business-table td { padding:10px 11px; border-top:1px solid var(--slate-200); color:var(--slate-800); font-size:.82rem; vertical-align:top; }
+        .business-table td.num { text-align:right; font-weight:800; white-space:nowrap; }
+        .business-table .status-cell { font-weight:800; }
+        .status-current { color:#166534; }
+        .status-pastdue { color:#b42318; }
+        .status-closed { color:#667085; }
+        .business-footnote { margin:14px 0 0; color:var(--slate-600); font-size:.8rem; line-height:1.55; }
+        #businessPrintButton { background:linear-gradient(135deg,#0f7d3a,#1ba34f); box-shadow:0 14px 30px rgba(27,163,79,.24); display:block; margin:22px auto 0; }
+
+        .business-score-panel { margin-top:16px; }
+        .business-score-card {
+            display:grid; grid-template-columns:168px 1fr; gap:18px; align-items:center;
+            border:1px solid var(--slate-200); border-radius:22px; padding:18px;
+            background:linear-gradient(160deg, rgba(12,34,80,.98), rgba(31,58,157,.97)); color:#fff;
+            position:relative; overflow:hidden;
+        }
+        .business-score-card::before { content:''; position:absolute; right:-28px; top:-30px; width:140px; height:140px; border-radius:50%; background:rgba(255,255,255,.08); }
+        .business-score-card::after { content:''; position:absolute; left:-42px; bottom:-54px; width:155px; height:155px; border-radius:50%; background:rgba(239,23,13,.12); }
+        .business-score-gauge-wrap { position:relative; width:148px; height:148px; margin:auto; z-index:1; }
+        .business-score-gauge { transform:rotate(-90deg); }
+        .business-score-center { position:absolute; inset:0; display:grid; place-items:center; text-align:center; z-index:1; }
+        .business-score-center .big { font-size:1.9rem; font-weight:900; line-height:1; }
+        .business-score-center .small { margin-top:5px; font-size:.9rem; color:rgba(255,255,255,.84); font-weight:700; }
+        .business-score-copy { position:relative; z-index:1; min-width:0; }
+        .business-score-copy h4 { margin:0; color:#fff; font-size:1.05rem; }
+        .business-score-copy .eyeline { margin:6px 0 0; color:rgba(255,255,255,.8); font-size:.84rem; font-weight:700; }
+        .business-score-band { display:inline-flex; align-items:center; padding:8px 12px; border-radius:999px; font-size:.82rem; font-weight:900; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.16); margin-top:11px; }
+        .business-score-desc { margin:11px 0 0; color:rgba(255,255,255,.84); font-size:.92rem; line-height:1.55; }
+        .business-score-scale { margin-top:14px; }
+        .business-score-scale-bar { height:10px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,.14); display:grid; grid-template-columns:1fr 1fr 1fr; }
+        .business-score-scale-bar span:nth-child(1){background:#ef4444;} .business-score-scale-bar span:nth-child(2){background:#f59e0b;} .business-score-scale-bar span:nth-child(3){background:#22c55e;}
+        .business-score-scale-labels { display:flex; justify-content:space-between; margin-top:8px; font-size:.75rem; color:rgba(255,255,255,.8); font-weight:700; }
+        .person-analysis-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px; }
+        .person-detail-box { border:1px solid var(--slate-200); background:var(--slate-050); border-radius:16px; padding:13px; }
+        .person-detail-box h5 { margin:0 0 9px; color:var(--anik-blue-800); font-size:.92rem; }
+        .person-mini-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+        .person-mini-item { border:1px solid #e3e8f0; background:#fff; border-radius:12px; padding:10px; }
+        .person-mini-item .label { color:var(--slate-600); font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
+        .person-mini-item .value { margin-top:5px; color:var(--slate-950); font-size:.84rem; font-weight:800; line-height:1.35; overflow-wrap:anywhere; }
+        .person-analysis-list { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+        .person-analysis-list li { padding:10px 11px; border-radius:12px; border:1px solid var(--slate-200); background:#fff; color:var(--slate-700); font-size:.84rem; line-height:1.45; }
+        .person-analysis-list li.critical { background:#fff0ee; border-color:#ffd0ca; color:#8f1d16; }
+        .person-analysis-list li.warning { background:#fff7e8; border-color:#f9dfa7; color:#854d0e; }
+        .person-analysis-list li.positive { background:#ecfdf3; border-color:#c5ead1; color:#166534; }
+        .business-table-title { margin:14px 0 0; color:var(--anik-blue-800); font-size:.95rem; font-weight:900; }
+
+        @media (max-width:1100px) {
+            .common-kpis { grid-template-columns:repeat(3,minmax(0,1fr)); }
+            .common-analysis-grid, .person-reports-grid { grid-template-columns:1fr; }
+        }
+        @media (max-width:820px) {
+            .business-upload-grid { grid-template-columns:1fr; }
+            .business-action-row { grid-template-columns:1fr; }
+            .person-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .business-score-card, .person-analysis-grid { grid-template-columns:1fr; }
+        }
+        @media (max-width:560px) {
+            .credit-mode-tabs { max-width:none; }
+            .common-kpis, .person-kpis, .person-mini-grid { grid-template-columns:1fr 1fr; }
+            .business-report-root { padding:12px; border-radius:22px; }
+            .business-report-header { padding:16px; border-radius:18px; }
+            .business-score-gauge-wrap { width:134px; height:134px; }
+        }
+
+        @media print {
+            body.print-mode-mfi #business-report-container,
+            body.print-mode-mfi #businessPrintButton,
+            body.print-mode-mfi .credit-mode-shell { display:none !important; }
+            body.print-mode-business .main-header,
+            body.print-mode-business .upload-section,
+            body.print-mode-business #loader,
+            body.print-mode-business #report-container,
+            body.print-mode-business #printButton,
+            body.print-mode-business .credit-mode-shell { display:none !important; }
+            .credit-mode-shell, #businessPrintButton { display:none !important; }
+            #business-report-container.hidden { display:none !important; }
+            #business-report-container:not(.hidden) { display:block !important; margin:0 !important; }
+            .business-report-root { padding:0 !important; border:0 !important; border-radius:0 !important; background:#fff !important; overflow:visible !important; }
+            .business-report-header { border-radius:5mm !important; padding:4mm 5mm !important; box-shadow:none !important; break-inside:avoid !important; page-break-inside:avoid !important; }
+            .business-report-header h2 { font-size:15pt !important; }
+            .business-report-header p { font-size:8.5pt !important; }
+            .business-header-chip { font-size:7.5pt !important; padding:1.6mm 2.4mm !important; }
+            .common-decision-card, .business-person-card, .business-section-card, .person-detail-box, .business-score-card { box-shadow:none !important; border-color:#d6dfec !important; break-inside:avoid !important; page-break-inside:avoid !important; }
+            .common-decision-card { margin-top:3mm !important; padding:4mm !important; border-radius:5mm !important; }
+            .business-score-panel { margin-top:3mm !important; }
+            .business-score-card { grid-template-columns:36mm 1fr !important; gap:3mm !important; padding:3.4mm !important; border-radius:4.5mm !important; }
+            .business-score-gauge-wrap { width:32mm !important; height:32mm !important; }
+            .business-score-gauge { width:32mm !important; height:32mm !important; }
+            .business-score-center .big { font-size:17pt !important; }
+            .business-score-center .small, .business-score-copy .eyeline { font-size:8pt !important; }
+            .business-score-copy h4 { font-size:10.6pt !important; }
+            .business-score-band { font-size:7.8pt !important; padding:1.7mm 2.6mm !important; margin-top:2.2mm !important; }
+            .business-score-desc { font-size:8.2pt !important; line-height:1.38 !important; margin-top:2mm !important; }
+            .business-score-scale { margin-top:2.2mm !important; }
+            .business-score-scale-bar { height:2.3mm !important; }
+            .business-score-scale-labels { font-size:7.2pt !important; margin-top:1.3mm !important; }
+            .common-kpis { grid-template-columns:repeat(3,1fr) !important; gap:2.2mm !important; margin-top:3mm !important; }
+            .common-kpi { padding:2.5mm !important; border-radius:3mm !important; }
+            .common-kpi .ck-label { font-size:7.5pt !important; }
+            .common-kpi .ck-value { font-size:10.5pt !important; }
+            .common-analysis-grid { grid-template-columns:1fr 1fr !important; gap:3mm !important; margin-top:3mm !important; }
+            .business-section-card { padding:3.2mm !important; border-radius:4mm !important; }
+            .analysis-points { gap:1.8mm !important; }
+            .analysis-points li { padding:2.2mm 2.5mm !important; font-size:8.2pt !important; line-height:1.35 !important; }
+            .person-reports-grid { grid-template-columns:1fr !important; gap:3mm !important; margin-top:3mm !important; }
+            .business-person-card { padding:3.5mm !important; border-radius:4mm !important; }
+            .person-kpis { grid-template-columns:repeat(4,1fr) !important; gap:2mm !important; }
+            .person-kpi { padding:2.2mm !important; border-radius:3mm !important; }
+            .person-card-head h3 { font-size:12.5pt !important; }
+            .person-card-head .smallmeta, .person-score-box .source, .person-alert { font-size:7.8pt !important; }
+            .person-score-box .score { font-size:15pt !important; }
+            .person-analysis-grid { grid-template-columns:1fr 1fr !important; gap:2.3mm !important; margin-top:2.5mm !important; }
+            .person-detail-box { padding:2.5mm !important; border-radius:3mm !important; }
+            .person-detail-box h5 { font-size:8.7pt !important; margin-bottom:1.8mm !important; }
+            .person-mini-item { padding:2mm !important; border-radius:2.6mm !important; }
+            .person-mini-item .label { font-size:6.8pt !important; }
+            .person-mini-item .value { font-size:7.8pt !important; margin-top:1mm !important; }
+            .person-analysis-list { gap:1.6mm !important; }
+            .person-analysis-list li { padding:2mm 2.2mm !important; font-size:7.8pt !important; line-height:1.32 !important; }
+            .business-table-title { margin-top:2.5mm !important; font-size:8.7pt !important; }
+            .business-table-wrap { overflow:visible !important; margin-top:2.2mm !important; border-radius:3mm !important; }
+            .business-table { min-width:0 !important; table-layout:fixed !important; }
+            .business-table thead { display:table-header-group !important; }
+            .business-table tr { break-inside:avoid !important; page-break-inside:avoid !important; }
+            .business-table th, .business-table td { padding:1.6mm 1.8mm !important; font-size:7.2pt !important; overflow-wrap:anywhere !important; }
+            .business-footnote { font-size:7.5pt !important; margin-top:2.2mm !important; }
+        }
+
     </style>
 </head>
 <body>
@@ -964,11 +1190,42 @@
             </div>
         </div>
 
-        <div class="upload-section">
-            <div class="upload-controls">
-                <input type="file" id="pdfFile" accept=".pdf">
-                <input type="password" id="pdfPassword" placeholder="PDF पासवर्ड टाका (आवश्यक)">
-                <button onclick="analyzeFile()">विश्लेषण करा</button>
+        <div class="credit-mode-shell">
+            <div class="credit-mode-tabs" role="tablist" aria-label="Credit analysis mode">
+                <button type="button" id="mfiModeBtn" class="credit-mode-btn active" onclick="switchCreditMode('mfi')">MFI</button>
+                <button type="button" id="businessModeBtn" class="credit-mode-btn" onclick="switchCreditMode('business')">Business</button>
+            </div>
+
+            <div id="mfiModePanel" class="upload-section mode-panel">
+                <h3 class="mode-heading">MFI Credit Analysis</h3>
+                <p class="mode-help">सध्याची MFI रिपोर्ट तपासणी पूर्वीप्रमाणेच. एक Equifax PDF निवडा आणि विश्लेषण करा.</p>
+                <div class="upload-controls">
+                    <input type="file" id="pdfFile" accept=".pdf">
+                    <input type="password" id="pdfPassword" placeholder="PDF पासवर्ड टाका (आवश्यक)" autocomplete="off">
+                    <button onclick="analyzeFile()">MFI विश्लेषण करा</button>
+                </div>
+            </div>
+
+            <div id="businessModePanel" class="upload-section mode-panel hidden">
+                <h3 class="mode-heading">Business Loan - Applicant + Co-Applicant</h3>
+                <p class="mode-help">Applicant आणि Co-Applicant चे PDF रिपोर्ट वेगवेगळे अपलोड करा. सिस्टम दोन्ही स्वतंत्रपणे वाचून खाली एक Common / Combined Credit Analysis तयार करेल.</p>
+                <div class="business-upload-grid">
+                    <div class="file-role-box">
+                        <div class="file-role-title"><strong>Applicant Report</strong><span class="role-pill">मुख्य अर्जदार</span></div>
+                        <input type="file" id="businessApplicantFile" accept=".pdf">
+                    </div>
+                    <div class="file-role-box">
+                        <div class="file-role-title"><strong>Co-Applicant Report</strong><span class="role-pill">सह-अर्जदार</span></div>
+                        <input type="file" id="businessCoApplicantFile" accept=".pdf">
+                    </div>
+                </div>
+                <div class="business-action-row">
+                    <div class="password-wrap">
+                        <input type="password" id="businessPdfPassword" placeholder="दोन्ही Equifax PDF साठी पासवर्ड" autocomplete="off">
+                        <span class="field-note">पासवर्ड HTML मध्ये save केला जात नाही. दोन्ही reports साठी एकच password वापरला जाईल.</span>
+                    </div>
+                    <button onclick="analyzeBusinessFiles()">Common Business Analysis करा</button>
+                </div>
             </div>
         </div>
 
@@ -1173,6 +1430,75 @@
             </div>
             <button id="printButton" onclick="printReport()">रिपोर्ट प्रिंट / सेव्ह करा</button>
         </div>
+
+
+        <div id="business-report-container" class="hidden">
+            <div id="business-report-content" class="business-report-root">
+                <div class="business-report-header">
+                    <div>
+                        <h2>ANIK Business Credit - Common Analysis</h2>
+                        <p>Applicant + Co-Applicant स्वतंत्र report reading आणि एकत्रित family-level bureau assessment</p>
+                    </div>
+                    <div class="business-header-meta">
+                        <span class="business-header-chip" id="businessReportDate">Report: --</span>
+                        <span class="business-header-chip" id="businessApplicantNameChip">Applicant: --</span>
+                        <span class="business-header-chip" id="businessCoApplicantNameChip">Co-Applicant: --</span>
+                    </div>
+                </div>
+
+                <div class="common-decision-card">
+                    <div class="common-decision-top">
+                        <div>
+                            <h3>Common / Combined Credit View</h3>
+                            <p id="businessDecisionSummary">दोन्ही रिपोर्ट वाचल्यानंतर common risk view येथे दिसेल.</p>
+                        </div>
+                        <span id="businessCommonRiskBadge" class="business-risk-badge risk-grade-b">Review</span>
+                    </div>
+
+                    <div id="businessCombinedScoreWrap" class="business-score-panel"></div>
+
+                    <div class="common-kpis">
+                        <div class="common-kpi"><div class="ck-label">Combined Open Accounts</div><div class="ck-value" id="businessCombinedOpen">0</div><div class="ck-sub">Applicant + Co-Applicant</div></div>
+                        <div class="common-kpi"><div class="ck-label">Past Due Accounts</div><div class="ck-value" id="businessCombinedPastDue">0</div><div class="ck-sub">दोन्ही reports</div></div>
+                        <div class="common-kpi"><div class="ck-label">Gross Outstanding</div><div class="ck-value" id="businessCombinedOutstanding">₹ 0</div><div class="ck-sub">Before shared-loan adjustment</div></div>
+                        <div class="common-kpi"><div class="ck-label">Combined Overdue</div><div class="ck-value" id="businessCombinedOverdue">₹ 0</div><div class="ck-sub">Past due amount</div></div>
+                        <div class="common-kpi"><div class="ck-label">Estimated Monthly EMI</div><div class="ck-value" id="businessCombinedEmi">₹ 0</div><div class="ck-sub">Parsed active accounts</div></div>
+                        <div class="common-kpi"><div class="ck-label">Worst Bureau Score</div><div class="ck-value" id="businessWorstScore">--</div><div class="ck-sub" id="businessWorstScoreSource">Available bureau score</div></div>
+                    </div>
+
+                    <div class="common-analysis-grid">
+                        <div class="business-section-card">
+                            <h4>System Analysis - मुख्य मुद्दे</h4>
+                            <ul class="analysis-points" id="businessCommonPoints"></ul>
+                        </div>
+                        <div class="business-section-card">
+                            <h4>Underwriting Action</h4>
+                            <ul class="analysis-points" id="businessActionPoints"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-reports-grid">
+                    <div id="businessApplicantCard" class="business-person-card"></div>
+                    <div id="businessCoApplicantCard" class="business-person-card"></div>
+                </div>
+
+                <div class="business-section-card" style="margin-top:16px;">
+                    <h4>Potential Shared / Joint Loan Check</h4>
+                    <div id="businessSharedLoanNote" class="person-alert ok">समान loan fingerprint आढळल्यास combined exposure double-count होऊ नये म्हणून सिस्टम स्वतंत्र warning देईल.</div>
+                    <div id="businessSharedLoanTableWrap" class="business-table-wrap hidden">
+                        <table class="business-table">
+                            <thead><tr><th>Loan Type</th><th>Date Opened</th><th>Applicant Balance</th><th>Co-Applicant Balance</th><th>Observation</th></tr></thead>
+                            <tbody id="businessSharedLoanTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <p class="business-footnote"><strong>महत्त्वाची टीप:</strong> हा report फक्त credit-bureau data चे decision-support analysis आहे. Business loan ची अंतिम मंजुरी करण्यापूर्वी actual business income/cash flow, bank statement, GST/ITR (लागू असल्यास), existing EMI proof, field verification, collateral/security आणि ANIK ची मंजूर credit policy स्वतंत्रपणे तपासावी. Bureau report मधील masked lender/account data मुळे काही shared/joint exposures automatic पद्धतीने निश्चित ओळखता येणार नाहीत.</p>
+            </div>
+            <button id="businessPrintButton" onclick="printBusinessReport()">Common Business Report प्रिंट / सेव्ह करा</button>
+        </div>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
@@ -1180,6 +1506,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
 
         async function analyzeFile() {
+            document.getElementById('business-report-container').classList.add('hidden');
             const fileInput = document.getElementById('pdfFile');
             if (fileInput.files.length === 0) { alert('कृपया एक PDF फाईल निवडा.'); return; }
             const password = document.getElementById('pdfPassword').value;
@@ -1640,7 +1967,687 @@
             renderDonutChart(analysis);
         }
 
-        function printReport() { window.print(); }
+
+
+        // ===== Business mode / dual-report analysis =====
+        let currentCreditMode = 'mfi';
+
+        function switchCreditMode(mode) {
+            currentCreditMode = mode === 'business' ? 'business' : 'mfi';
+            const isBusiness = currentCreditMode === 'business';
+            document.getElementById('mfiModeBtn').classList.toggle('active', !isBusiness);
+            document.getElementById('businessModeBtn').classList.toggle('active', isBusiness);
+            document.getElementById('mfiModePanel').classList.toggle('hidden', isBusiness);
+            document.getElementById('businessModePanel').classList.toggle('hidden', !isBusiness);
+            if (isBusiness) document.getElementById('report-container').classList.add('hidden');
+            else document.getElementById('business-report-container').classList.add('hidden');
+        }
+
+        function moneyToNumber(value) {
+            if (value === null || value === undefined) return 0;
+            const n = parseFloat(String(value).replace(/[^0-9.\-]/g, ''));
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        function fmtMoney(value) {
+            return `₹ ${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(Number(value) || 0)}`;
+        }
+
+        function safeText(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function normalizeWs(text) {
+            return String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        async function extractPdfTextFromFile(file, password) {
+            const arrayBuffer = await file.arrayBuffer();
+            const typedarray = new Uint8Array(arrayBuffer);
+            const pdf = await pdfjsLib.getDocument({ data: typedarray, password }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                fullText += ' ' + textContent.items.map(item => item.str).join(' ');
+            }
+            return normalizeWs(fullText);
+        }
+
+        function parseBusinessSummarySection(text) {
+            const summaryStart = text.search(/Consolidated Credit Summary/i);
+            if (summaryStart < 0) return { overall:{}, retail:{}, mfi:{} };
+            let summaryEnd = text.search(/Account Details\s*:/i);
+            if (summaryEnd < 0 || summaryEnd <= summaryStart) summaryEnd = Math.min(text.length, summaryStart + 6500);
+            const st = text.slice(summaryStart, summaryEnd);
+
+            function sectionBetween(label, nextLabel) {
+                const start = st.search(new RegExp('\\b' + label + '\\b', 'i'));
+                if (start < 0) return '';
+                let end = st.length;
+                if (nextLabel) {
+                    const rel = st.slice(start + label.length).search(new RegExp('\\b' + nextLabel + '\\b', 'i'));
+                    if (rel >= 0) end = start + label.length + rel;
+                }
+                return st.slice(start, end);
+            }
+
+            function parseCore(sec) {
+                const open = sec.match(/Number of Open Accounts\s*:\s*(\d+)/i);
+                const past = sec.match(/Number of Past Due Accounts\s*:\s*(\d+)/i);
+                const out = sec.match(/Total Outstanding Balance\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+                const overdue = sec.match(/Total Past Due Amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+                const installment = sec.match(/Installment amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+                const sanction = sec.match(/Total Sanction Amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+                const totalAccounts = sec.match(/Total Accounts\s*:\s*(\d+)/i);
+                return {
+                    openAccounts: open ? +open[1] : 0,
+                    pastDueAccounts: past ? +past[1] : 0,
+                    outstanding: out ? moneyToNumber(out[1]) : 0,
+                    overdue: overdue ? moneyToNumber(overdue[1]) : 0,
+                    installment: installment ? moneyToNumber(installment[1]) : 0,
+                    sanction: sanction ? moneyToNumber(sanction[1]) : 0,
+                    totalAccounts: totalAccounts ? +totalAccounts[1] : 0
+                };
+            }
+
+            const overallSec = sectionBetween('OVERALL', 'RETAIL');
+            const retailSec = sectionBetween('RETAIL', 'MICROFINANCE');
+            const mfiSec = sectionBetween('MICROFINANCE', null);
+            return { overall: parseCore(overallSec), retail: parseCore(retailSec), mfi: parseCore(mfiSec) };
+        }
+
+        function parseBusinessAccountBlocks(text) {
+            const parts = text.split(/\bAcct\s*#\s*/i);
+            const accounts = [];
+            for (let i = 1; i < parts.length; i++) {
+                const block = parts[i].slice(0, 5200);
+                const acctMatch = block.match(/^\s*([^\s]+(?:\s*\/\s*[^\s]+)?)/);
+                const accountNo = acctMatch ? acctMatch[1].trim() : '';
+                const institutionMatch = block.match(/Institution\s*:\s*(.+?)(?=\s+(?:Past Due Amount|Loan Category|Type|Current Balance|Balance|Last Payment|Write-off Amount|Disbursed Amount|Sanction Amount|Date Reported|Date Opened|Ownership Type)\s*:)/i);
+                let institution = institutionMatch ? normalizeWs(institutionMatch[1]) : 'Not available / masked';
+                if (institution.length > 90) institution = institution.slice(0, 90);
+
+                const loanTypeMatch = block.match(/(?:Loan Category|Type)\s*:\s*(.+?)(?=\s+(?:Loan Purpose|Past Due Amount|Current Balance|Balance|Last Payment|Write-off Amount|Disbursed Amount|Sanction Amount|Ownership Type|Institution Type|Date Reported|Date Opened)\s*:)/i);
+                const loanType = loanTypeMatch ? normalizeWs(loanTypeMatch[1]) : 'Loan';
+
+                const statusMatch = block.match(/Account status\s*:\s*(.+?)(?=\s+(?:Asset Classification|Suit Filed Status|History|Date Reported|$))/i)
+                    || block.match(/\bStatus\s*:\s*(.+?)(?=\s+(?:Date Reported|Past Due Amount|Disbursed Amount|Date Opened|Last Payment|Date Closed|Loan Category|$))/i);
+                let status = statusMatch ? normalizeWs(statusMatch[1]) : '';
+                // Canonicalise common Equifax statuses so page headers/history text cannot leak into the status cell.
+                const writtenStatus = status.match(/(?:charge\s*off\s*\/?\s*written\s*off|written\s*off|charge\s*off)/i);
+                const dpdRangeStatus = status.match(/\d+\s*-\s*\d+\s*days?\s*past\s*due/i);
+                const dpdSingleStatus = status.match(/\d+\+?\s*days?\s*past\s*due/i);
+                if (writtenStatus) status = writtenStatus[0];
+                else if (/settled/i.test(status)) status = 'Settled';
+                else if (dpdRangeStatus) status = dpdRangeStatus[0];
+                else if (dpdSingleStatus) status = dpdSingleStatus[0];
+                else if (/closed\s*account/i.test(status)) status = 'Closed Account';
+                else if (/current\s*account|\bcurrent\b/i.test(status)) status = 'Current Account';
+                else if (/new\s*account/i.test(status)) status = 'New Account';
+                else if (status.length > 80) status = status.slice(0,80);
+
+                const balanceMatch = block.match(/Current Balance\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i)
+                    || block.match(/\bBalance\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+                const pastDueMatch = block.match(/Past Due Amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+                const installmentMatch = block.match(/Installment Amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i)
+                    || block.match(/Payment Amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+                const sanctionMatch = block.match(/Sanction Amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i)
+                    || block.match(/Disbursed Amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+                const writeOffMatch = block.match(/Write-off Amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+                const dateOpenedMatch = block.match(/Date Opened\s*:\s*(\d{2}-\d{2}-\d{4})/i);
+                const dateClosedMatch = block.match(/Date Closed\s*:\s*(\d{2}-\d{2}-\d{4})/i);
+                const openMatch = block.match(/\bOpen\s*:\s*(Yes|No)/i);
+
+                const balance = balanceMatch ? moneyToNumber(balanceMatch[1]) : 0;
+                const pastDue = pastDueMatch ? moneyToNumber(pastDueMatch[1]) : 0;
+                const installment = installmentMatch ? moneyToNumber(installmentMatch[1]) : 0;
+                const sanction = sanctionMatch ? moneyToNumber(sanctionMatch[1]) : 0;
+                const writeOff = writeOffMatch ? moneyToNumber(writeOffMatch[1]) : 0;
+                const dateOpened = dateOpenedMatch ? dateOpenedMatch[1] : '';
+                const dateClosed = dateClosedMatch ? dateClosedMatch[1] : '';
+
+                let maxDpd = 0;
+                const range = status.match(/(\d+)\s*-\s*(\d+)\s*days?\s*past\s*due/i);
+                const single = status.match(/(\d+)\+?\s*days?\s*past\s*due/i);
+                if (range) maxDpd = +range[2];
+                else if (single) maxDpd = +single[1];
+                if (/written\s*off|charge\s*off/i.test(status)) maxDpd = Math.max(maxDpd, 999);
+
+                const isClosed = /closed/i.test(status) || (openMatch && /^No$/i.test(openMatch[1])) || !!dateClosed;
+                const isOpen = !isClosed && ((openMatch && /^Yes$/i.test(openMatch[1])) || balance > 0 || pastDue > 0 || /current|past\s*due|new\s*account/i.test(status));
+
+                accounts.push({
+                    accountNo, institution, loanType, status: status || (isClosed ? 'Closed' : (isOpen ? 'Open' : 'Status not available')),
+                    balance, pastDue, installment, sanction, writeOff, dateOpened, dateClosed, maxDpd, isOpen, isClosed
+                });
+            }
+
+            // Remove exact duplicate account blocks that can appear because of PDF text ordering.
+            const seen = new Set();
+            return accounts.filter(a => {
+                const key = [a.accountNo, a.institution, a.loanType, a.dateOpened, a.balance, a.pastDue, a.status].join('|').toLowerCase();
+                if (seen.has(key)) return false;
+                seen.add(key); return true;
+            });
+        }
+
+        function businessAccountFingerprint(a) {
+            const cleanInst = normalizeWs(a.institution).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const cleanType = normalizeWs(a.loanType).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const accountReliable = a.accountNo && !/^\*+$/.test(a.accountNo) && a.accountNo.length >= 4;
+            if (accountReliable) return `acct:${a.accountNo.toLowerCase()}`;
+            if (!a.dateOpened || (!a.balance && !a.sanction)) return '';
+            return `fp:${cleanInst}|${cleanType}|${a.dateOpened}|${Math.round(a.balance)}|${Math.round(a.sanction)}`;
+        }
+
+        function analyzeBusinessReportText(text, role) {
+            const clean = normalizeWs(text);
+            const summary = parseBusinessSummarySection(clean);
+            const accounts = parseBusinessAccountBlocks(clean);
+            const activeAccounts = accounts.filter(a => a.isOpen);
+
+            const nameMatch = clean.match(/Consumer Name\s*:\s*(.+?)(?=\s+Personal Information)/i);
+            const dobMatch = clean.match(/DOB\s*:\s*(\d{2}-\d{2}-\d{4})/i);
+            const ageMatch = clean.match(/Age\s*:\s*(\d+)\s*Years/i);
+            const genderMatch = clean.match(/Gender\s*:\s*(Male|Female|Other)/i);
+            const incomeMatch = clean.match(/Monthly Family Income\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+            const occupationMatch = clean.match(/Occupation\s*:\s*(.+?)(?=\s+(?:ID - Other|NREGA card number|CKYC|Consumer Address|Contact Details)\s*:)/i);
+            const reportDateMatch = clean.match(/\bDATE\s*:\s*(\d{2}-\d{2}-\d{4})/i);
+            const reportOrderMatch = clean.match(/REPORT ORDER NO\.\s*:\s*([0-9,\s]+)/i);
+            const scoreSectionMatch = clean.match(/Score Detail\(s\)\s*:\s*(.+?)(?=\s+Account Summary\s*:|\s+Consolidated Credit Summary|\s+Account Details\s*:)/i);
+            const scoreSection = scoreSectionMatch ? scoreSectionMatch[1] : clean;
+            const mrsMatch = scoreSection.match(/\bMRS\b\s*(?:Score\s*)?[:\-]?\s*(\d{3})\b/i)
+                || scoreSection.match(/Score Name\s+Score[\s\S]{0,250}?\bMRS\b[\s\S]{0,40}?(\d{3})\b/i)
+                || clean.match(/\bMRS\b[\s\S]{0,60}?(\d{3})\b/i);
+            const ersMatch = scoreSection.match(/Equifax Risk Score\s*4\.0\s*(?:Score\s*)?[:\-]?\s*(\d{3})\b/i)
+                || clean.match(/Equifax Risk Score\s*4\.0[\s\S]{0,60}?(\d{3})\b/i);
+            const panMatch = clean.match(/PAN\s*:\s*([A-Z0-9]+)/i);
+            const uidMatch = clean.match(/UID\s*:\s*([A-Z0-9X]+)/i);
+            const voterMatch = clean.match(/Voter ID\s*:\s*([A-Z0-9]+)/i);
+            const mobileMatch = clean.match(/\bMobile\s*:\s*([0-9]{10})/i);
+            const altMobileMatch = clean.match(/Alt\.\s*Mobile\s*:\s*([0-9]{10})/i);
+            const homeMatch = clean.match(/\bHome\s*:\s*([0-9]{10})/i);
+            const emailMatch = clean.match(/Email\s*:\s*([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/i);
+            const addressSectionMatch = clean.match(/Consumer Address\s*:\s*(.+?)\s+Score Detail\(s\)\s*:/i);
+            let primaryAddress = '';
+            if (addressSectionMatch && addressSectionMatch[1]) {
+                const sec = normalizeWs(addressSectionMatch[1]);
+                const primaryAddressMatch = sec.match(/Primary\s+(.+?)\s+[A-Z]{2}\s+\d{6}\s+\d{2}-\d{2}-\d{4}/i)
+                    || sec.match(/Owns,Permanent\s+(.+?)\s+[A-Z]{2}\s+\d{6}\s+\d{2}-\d{2}-\d{4}/i)
+                    || sec.match(/Permanent\s+(.+?)\s+[A-Z]{2}\s+\d{6}\s+\d{2}-\d{2}-\d{4}/i)
+                    || sec.match(/N\/A\s+(.+?)\s+[A-Z]{2}\s+\d{6}\s+\d{2}-\d{2}-\d{4}/i);
+                primaryAddress = primaryAddressMatch ? normalizeWs(primaryAddressMatch[1]) : sec.slice(0, 140);
+            }
+
+            let accountOverdue = activeAccounts.reduce((sum,a)=>sum+a.pastDue,0);
+            let accountEmi = activeAccounts.reduce((sum,a)=>sum+a.installment,0);
+            let accountWriteOff = accounts.reduce((sum,a)=>sum+a.writeOff,0);
+            const severeStatusAccounts = accounts.filter(a => /written\s*off|charge\s*off|settled|suit filed|wilful default/i.test(a.status));
+            const maxDpd = activeAccounts.reduce((m,a)=>Math.max(m,a.maxDpd || 0),0);
+            const anikAccounts = activeAccounts.filter(a => /\banik\b/i.test(a.institution));
+            const externalAccounts = activeAccounts.filter(a => !/\banik\b/i.test(a.institution));
+            const externalExposure = externalAccounts.reduce((sum,a)=>sum+a.balance,0);
+            const anikExposure = anikAccounts.reduce((sum,a)=>sum+a.balance,0);
+
+            const overallOutstanding = summary.overall.outstanding || activeAccounts.reduce((sum,a)=>sum+a.balance,0);
+            const overallOpen = summary.overall.openAccounts || activeAccounts.length;
+            const overallPastDue = summary.overall.pastDueAccounts || activeAccounts.filter(a=>a.pastDue>0 || /past\s*due/i.test(a.status)).length;
+            const summaryOverdue = (summary.retail.overdue || 0) + (summary.mfi.overdue || 0);
+            const overdue = summaryOverdue || accountOverdue;
+            const monthlyEmi = accountEmi || summary.mfi.installment || 0;
+            const reportedIncome = incomeMatch ? moneyToNumber(incomeMatch[1]) : 0;
+            const primaryScore = ersMatch ? +ersMatch[1] : (mrsMatch ? +mrsMatch[1] : null);
+            const primaryScoreSource = ersMatch ? 'Equifax Risk Score 4.0' : (mrsMatch ? 'MRS Bureau Score' : 'Score not available');
+
+            const result = {
+                role,
+                name: nameMatch ? normalizeWs(nameMatch[1]).toUpperCase() : 'NAME NOT FOUND',
+                dob: dobMatch ? dobMatch[1] : '', age: ageMatch ? +ageMatch[1] : 0,
+                gender: genderMatch ? normalizeWs(genderMatch[1]) : '',
+                occupation: occupationMatch ? normalizeWs(occupationMatch[1]) : '',
+                reportedIncome,
+                primaryAddress,
+                mobile: mobileMatch ? mobileMatch[1] : '',
+                altMobile: altMobileMatch ? altMobileMatch[1] : '',
+                homePhone: homeMatch ? homeMatch[1] : '',
+                email: emailMatch ? emailMatch[1] : '',
+                pan: panMatch ? panMatch[1] : '',
+                uid: uidMatch ? uidMatch[1] : '',
+                voterId: voterMatch ? voterMatch[1] : '',
+                reportDate: reportDateMatch ? reportDateMatch[1] : '',
+                reportOrder: reportOrderMatch ? normalizeWs(reportOrderMatch[1]) : '',
+                mrs: mrsMatch ? +mrsMatch[1] : null,
+                equifaxScore: ersMatch ? +ersMatch[1] : null,
+                primaryScore, primaryScoreSource,
+                summary, accounts, activeAccounts,
+                openAccounts: overallOpen,
+                pastDueAccounts: overallPastDue,
+                outstanding: overallOutstanding,
+                overdue,
+                monthlyEmi,
+                writeOff: accountWriteOff,
+                severeStatusAccounts,
+                maxDpd,
+                externalAccountsCount: externalAccounts.length,
+                externalExposure,
+                anikAccountsCount: anikAccounts.length,
+                anikExposure
+            };
+            result.risk = evaluateBusinessPersonRisk(result);
+            return result;
+        }
+
+        function evaluateBusinessPersonRisk(r) {
+            let level = 0;
+            const reasons = [];
+            const score = r.primaryScore;
+            const ratio = r.reportedIncome > 0 ? r.monthlyEmi / r.reportedIncome : null;
+
+            if (r.writeOff > 0 || r.severeStatusAccounts.length > 0) {
+                level = 3; reasons.push('write-off / settled / severe adverse status दिसत आहे');
+            }
+            if (r.maxDpd >= 90) {
+                level = Math.max(level,3); reasons.push(`maximum delinquency ${r.maxDpd}+ DPD zone मध्ये आहे`);
+            } else if (r.maxDpd >= 30) {
+                level = Math.max(level,2); reasons.push(`delinquency ${r.maxDpd} DPD पर्यंत दिसते`);
+            }
+            if (r.pastDueAccounts >= 2 || r.overdue >= 15000) {
+                level = Math.max(level,3); reasons.push(`${r.pastDueAccounts} past-due accounts / overdue ${fmtMoney(r.overdue)}`);
+            } else if (r.pastDueAccounts > 0 || r.overdue > 0) {
+                level = Math.max(level,2); reasons.push(`past-due exposure ${fmtMoney(r.overdue)} आहे`);
+            }
+            if (score !== null && score < 550) {
+                level = Math.max(level,3); reasons.push(`${r.primaryScoreSource} ${score} - weak bureau score`);
+            } else if (score !== null && score < 650) {
+                level = Math.max(level,2); reasons.push(`${r.primaryScoreSource} ${score} - cautious score band`);
+            }
+            if (r.openAccounts >= 5) {
+                level = Math.max(level,2); reasons.push(`${r.openAccounts} open accounts - high leverage count`);
+            }
+            if (r.externalExposure >= 500000) {
+                level = Math.max(level,2); reasons.push(`external active exposure ${fmtMoney(r.externalExposure)}`);
+            }
+            if (ratio !== null && ratio > .60) {
+                level = Math.max(level,3); reasons.push(`bureau-reported income विरुद्ध parsed EMI ratio ${(ratio*100).toFixed(0)}% आहे`);
+            } else if (ratio !== null && ratio > .40) {
+                level = Math.max(level,2); reasons.push(`bureau-reported income विरुद्ध parsed EMI ratio ${(ratio*100).toFixed(0)}% आहे`);
+            }
+            if (!reasons.length) reasons.push('major bureau delinquency / write-off signal parsed नाही');
+
+            const meta = [
+                {grade:'A', label:'Clean Bureau View', cls:'risk-grade-a'},
+                {grade:'B', label:'Review', cls:'risk-grade-b'},
+                {grade:'C', label:'High Risk / Hold', cls:'risk-grade-c'},
+                {grade:'D', label:'Critical / Reject at Bureau Stage', cls:'risk-grade-d'}
+            ][level];
+            return { level, ...meta, reasons };
+        }
+
+        function findSharedBusinessLoans(applicant, coApplicant) {
+            const shared = [];
+            const coByFp = new Map();
+            coApplicant.activeAccounts.forEach(a => {
+                const fp = businessAccountFingerprint(a);
+                if (fp) coByFp.set(fp,a);
+            });
+            applicant.activeAccounts.forEach(a => {
+                const fp = businessAccountFingerprint(a);
+                if (!fp || !coByFp.has(fp)) return;
+                const b = coByFp.get(fp);
+                // Exact fingerprint is intentionally strict to reduce false de-duplication.
+                shared.push({applicant:a, coApplicant:b, fingerprint:fp});
+            });
+            return shared;
+        }
+
+        function buildCombinedBusinessAnalysis(applicant, coApplicant) {
+            const shared = findSharedBusinessLoans(applicant, coApplicant);
+            const grossOutstanding = applicant.outstanding + coApplicant.outstanding;
+            const grossOverdue = applicant.overdue + coApplicant.overdue;
+            const grossEmi = applicant.monthlyEmi + coApplicant.monthlyEmi;
+            const sharedOutstanding = shared.reduce((sum,x)=>sum+Math.min(x.applicant.balance,x.coApplicant.balance),0);
+            const sharedOverdue = shared.reduce((sum,x)=>sum+Math.min(x.applicant.pastDue,x.coApplicant.pastDue),0);
+            const sharedEmi = shared.reduce((sum,x)=>sum+Math.min(x.applicant.installment,x.coApplicant.installment),0);
+            const adjustedOutstanding = Math.max(0,grossOutstanding-sharedOutstanding);
+            const adjustedOverdue = Math.max(0,grossOverdue-sharedOverdue);
+            const adjustedEmi = Math.max(0,grossEmi-sharedEmi);
+            const scores = [applicant.primaryScore, coApplicant.primaryScore].filter(v=>Number.isFinite(v));
+            const worstScore = scores.length ? Math.min(...scores) : null;
+
+            let level = Math.max(applicant.risk.level, coApplicant.risk.level);
+            const points = [];
+            if (applicant.risk.level >= 2) points.push({type:applicant.risk.level===3?'critical':'warning', text:`Applicant: ${applicant.risk.reasons.slice(0,2).join('; ')}.`});
+            else points.push({type:'positive', text:`Applicant bureau view: ${applicant.risk.label}.`});
+            if (coApplicant.risk.level >= 2) points.push({type:coApplicant.risk.level===3?'critical':'warning', text:`Co-Applicant: ${coApplicant.risk.reasons.slice(0,2).join('; ')}.`});
+            else points.push({type:'positive', text:`Co-Applicant bureau view: ${coApplicant.risk.label}.`});
+
+            const totalPastDueAccounts = applicant.pastDueAccounts + coApplicant.pastDueAccounts;
+            if (applicant.pastDueAccounts > 0 && coApplicant.pastDueAccounts > 0) {
+                level = 3;
+                points.push({type:'critical', text:'दोन्ही अर्जदारांच्या bureau मध्ये past-due exposure आहे; household-level repayment stress signal मजबूत आहे.'});
+            }
+            if (adjustedOverdue > 0) points.push({type:adjustedOverdue>=15000?'critical':'warning', text:`Combined overdue अंदाजे ${fmtMoney(adjustedOverdue)} आहे.`});
+            else points.push({type:'positive', text:'Combined parsed overdue शून्य आहे.'});
+
+            if (shared.length) {
+                points.push({type:'warning', text:`${shared.length} संभाव्य shared/joint active loan match आढळले. Gross exposure मधून अंदाजे ${fmtMoney(sharedOutstanding)} duplicate exposure adjustment दाखवला आहे.`});
+            } else {
+                points.push({type:'positive', text:'Strict fingerprint वर exact shared/joint active loan duplicate आढळला नाही.'});
+            }
+
+            const meta = [
+                {grade:'A', label:'Eligible for Full Underwriting', cls:'risk-grade-a'},
+                {grade:'B', label:'Proceed with Caution', cls:'risk-grade-b'},
+                {grade:'C', label:'Hold - Detailed Credit Review', cls:'risk-grade-c'},
+                {grade:'D', label:'Bureau Stage - Do Not Proceed', cls:'risk-grade-d'}
+            ][level];
+
+            const actions = [];
+            if (level === 3) {
+                actions.push({type:'critical', text:'नवीन business loan पुढे नेण्यापूर्वी overdue regularisation / closure proof / NOC आणि latest bureau refresh आवश्यक.'});
+                actions.push({type:'critical', text:'Branch recommendation असूनही bureau adverse clear होईपर्यंत sanction stage hold करावी.'});
+            } else if (level === 2) {
+                actions.push({type:'warning', text:'Bank statement, business cash-flow, GST/ITR (लागू असल्यास), existing EMI proof आणि field verification शिवाय sanction करू नये.'});
+                actions.push({type:'warning', text:'Loan amount आणि tenure fixed करण्यापूर्वी FOIR / free cash surplus स्वतंत्रपणे calculate करावा.'});
+            } else {
+                actions.push({type:'positive', text:'Bureau stage acceptable दिसतो; पुढील business income, banking आणि security underwriting पूर्ण करा.'});
+                actions.push({type:'positive', text:'Final amount bureau score वर नाही तर verified repayment capacity आणि ANIK policy वर ठरवा.'});
+            }
+            if (shared.length) actions.push({type:'warning', text:'Shared/joint loan matches मूळ PDF मध्ये manually verify करा; masked account numbers मुळे auto-match indicative आहे.'});
+            else actions.push({type:'positive', text:'Combined exposure gross sum म्हणून घ्या; joint/shared account असल्यास manual de-duplication करा.'});
+
+            return {
+                level, ...meta, shared,
+                openAccounts: applicant.openAccounts + coApplicant.openAccounts,
+                pastDueAccounts: totalPastDueAccounts,
+                grossOutstanding, adjustedOutstanding,
+                grossOverdue, adjustedOverdue,
+                grossEmi, adjustedEmi,
+                sharedOutstanding, sharedOverdue, sharedEmi,
+                worstScore, points, actions
+            };
+        }
+
+        function statusClass(status) {
+            if (/past\s*due|written\s*off|charge\s*off|settled/i.test(status)) return 'status-pastdue';
+            if (/closed/i.test(status)) return 'status-closed';
+            return 'status-current';
+        }
+
+
+        function getBusinessScoreMeta(scoreRaw) {
+            const score = parseInt(scoreRaw, 10);
+            if (!score || Number.isNaN(score)) return { score: null, label: 'Manual Review', rating: 'Score unavailable', desc: 'Bureau score उपलब्ध नाही. Risk view account behavior, overdue, exposure आणि status pattern वर आधारित आहे.' };
+            if (score >= 750) return { score, label: 'मजबूत क्रेडिट प्रोफाइल', rating: 'Low Risk Zone', desc: 'स्कोअर चांगला आहे. Repayment discipline आणि credit behaviour तुलनेने मजबूत दिसते.' };
+            if (score >= 650) return { score, label: 'मध्यम क्रेडिट प्रोफाइल', rating: 'Review Carefully', desc: 'स्कोअर मध्यम आहे. Existing exposure, repayment capacity आणि document underwriting काळजीपूर्वक तपासणे आवश्यक आहे.' };
+            return { score, label: 'कमकुवत क्रेडिट प्रोफाइल', rating: 'High Risk Zone', desc: 'स्कोअर कमी आहे. Delinquency, overdue किंवा adverse credit behaviour चे संकेत तपासावेत.' };
+        }
+
+        function deriveBusinessFallbackScore(level) {
+            if (level >= 3) return 560;
+            if (level === 2) return 680;
+            return 780;
+        }
+
+        function renderBusinessScoreCard(scoreRaw, source, title, subtitle, fallbackLevel) {
+            const fallbackScore = deriveBusinessFallbackScore(fallbackLevel || 2);
+            const usableScore = (scoreRaw !== null && scoreRaw !== undefined && !Number.isNaN(parseInt(scoreRaw, 10))) ? parseInt(scoreRaw, 10) : fallbackScore;
+            const meta = getBusinessScoreMeta(usableScore);
+            const r = 44;
+            const circumference = 2 * Math.PI * r;
+            const clamped = Math.min(Math.max(usableScore, 300), 900);
+            const percent = (clamped / 900) * 100;
+            const dash = circumference * (percent / 100);
+            return `
+                <div class="business-score-card">
+                    <div class="business-score-gauge-wrap">
+                        <svg class="business-score-gauge" width="148" height="148" viewBox="0 0 120 120" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="businessScoreGradient" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#ef170d"></stop>
+                                    <stop offset="55%" stop-color="#f59e0b"></stop>
+                                    <stop offset="100%" stop-color="#22c55e"></stop>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="60" cy="60" r="44" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="10"></circle>
+                            <circle cx="60" cy="60" r="44" fill="none" stroke="url(#businessScoreGradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${dash} ${circumference}" stroke-dashoffset="${circumference * .25}"></circle>
+                        </svg>
+                        <div class="business-score-center">
+                            <div>
+                                <div class="big">${usableScore}</div>
+                                <div class="small">/ 900</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="business-score-copy">
+                        <h4>${safeText(title)}</h4>
+                        <div class="eyeline">${safeText(subtitle)}${source ? ` • ${safeText(source)}` : ''}</div>
+                        <div class="business-score-band">${safeText(meta.rating)} • ${safeText(meta.label)}</div>
+                        <p class="business-score-desc">${safeText(meta.desc)}</p>
+                        <div class="business-score-scale">
+                            <div class="business-score-scale-bar"><span></span><span></span><span></span></div>
+                            <div class="business-score-scale-labels"><span>300–649</span><span>650–749</span><span>750–900</span></div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function buildBusinessPersonAnalysis(person) {
+            const points = [];
+            if (person.primaryScore !== null) {
+                if (person.primaryScore >= 750) points.push({type:'positive', text:`Bureau score ${person.primaryScore} आहे, जो good / low-risk range मध्ये येतो.`});
+                else if (person.primaryScore >= 650) points.push({type:'warning', text:`Bureau score ${person.primaryScore} मध्यम आहे; exposure व repayment capacity काळजीपूर्वक तपासा.`});
+                else points.push({type:'critical', text:`Bureau score ${person.primaryScore} कमी आहे; adverse behaviour ची शक्यता तपासणे आवश्यक आहे.`});
+            } else {
+                points.push({type:'warning', text:'Bureau score उपलब्ध नाही; account behaviour, status history आणि manual underwriting वर अधिक भर द्यावा.'});
+            }
+            if (person.pastDueAccounts > 0 || person.overdue > 0) points.push({type:'critical', text:`Past due accounts ${person.pastDueAccounts} आणि overdue ${fmtMoney(person.overdue)} आढळले.`});
+            else points.push({type:'positive', text:'Past due amount आढळले नाही किंवा parsed bureau data नुसार delinquency नियंत्रित दिसते.'});
+            if (person.writeOff > 0 || person.severeStatusAccounts.length > 0) points.push({type:'critical', text:`Write-off / settled / adverse status pattern दिसत आहे. Parsed adverse amount: ${fmtMoney(person.writeOff)}.`});
+            if (person.externalAccountsCount >= 3) points.push({type:'warning', text:`External lenders ${person.externalAccountsCount} आहेत; multi-lender exposure उच्च असू शकतो.`});
+            else points.push({type:'positive', text:`External active accounts ${person.externalAccountsCount} असून exposure तुलनेने नियंत्रित असू शकतो.`});
+            if (person.reportedIncome > 0 && person.monthlyEmi > 0) {
+                const ratio = person.monthlyEmi / person.reportedIncome;
+                if (ratio >= .55) points.push({type:'critical', text:`Parsed EMI / reported income ratio अंदाजे ${(ratio*100).toFixed(0)}% आहे; repayment pressure उच्च असू शकतो.`});
+                else if (ratio >= .35) points.push({type:'warning', text:`Parsed EMI / reported income ratio अंदाजे ${(ratio*100).toFixed(0)}% आहे; business cash-flow verify करणे आवश्यक आहे.`});
+                else points.push({type:'positive', text:`Parsed EMI / reported income ratio अंदाजे ${(ratio*100).toFixed(0)}% आहे; prima facie manageable दिसू शकतो.`});
+            } else {
+                points.push({type:'warning', text:'Income किंवा EMI पैकी काही माहिती स्पष्ट नाही; bank statement / cash-flow verification आवश्यक आहे.'});
+            }
+            if (person.maxDpd >= 900) points.push({type:'critical', text:'Maximum delinquency write-off / adverse bucket मध्ये दिसते.'});
+            else if (person.maxDpd >= 90) points.push({type:'critical', text:`Maximum DPD ${person.maxDpd} दिवस आहे, जो high-risk bucket मध्ये येतो.`});
+            else if (person.maxDpd > 0) points.push({type:'warning', text:`Maximum DPD ${person.maxDpd} दिवस आहे; recent repayment discipline तपासा.`});
+            else points.push({type:'positive', text:'Parsed active accounts मध्ये max DPD current / 0 दिसतो.'});
+            return points.slice(0, 6);
+        }
+
+        function renderBusinessPersonCard(targetId, person, roleLabel) {
+            const target = document.getElementById(targetId);
+            const riskAlertClass = person.risk.level >= 3 ? 'bad' : (person.risk.level >= 2 ? 'warn' : 'ok');
+            const scoreText = person.primaryScore !== null ? person.primaryScore : '--';
+            const scoreSource = person.primaryScore !== null ? person.primaryScoreSource : 'Score not available';
+            const incomeText = person.reportedIncome ? fmtMoney(person.reportedIncome) : 'Not reported';
+            const accounts = person.activeAccounts.slice().sort((a,b)=>(b.pastDue-a.pastDue)||(b.balance-a.balance));
+            const rows = accounts.length ? accounts.map(a => `
+                <tr>
+                    <td><strong>${safeText(a.institution)}</strong><br><span style="color:#667085">${safeText(a.loanType)}</span></td>
+                    <td class="status-cell ${statusClass(a.status)}">${safeText(a.status)}</td>
+                    <td class="num">${a.installment ? fmtMoney(a.installment) : '—'}</td>
+                    <td class="num">${fmtMoney(a.balance)}</td>
+                    <td class="num">${a.pastDue ? fmtMoney(a.pastDue) : '₹ 0'}</td>
+                    <td>${safeText(a.dateOpened || '—')}</td>
+                </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:#667085">Active account detail parse झाले नाही / active account नाही.</td></tr>`;
+            const analysisPoints = buildBusinessPersonAnalysis(person)
+                .map(p=>`<li class="${p.type}">${safeText(p.text)}</li>`).join('');
+            const consumerMini = [
+                ['लिंग', person.gender || '—'],
+                ['व्यवसाय', person.occupation || '—'],
+                ['मोबाईल', person.mobile || person.homePhone || '—'],
+                ['पर्यायी मोबाईल', person.altMobile || '—'],
+                ['ईमेल', person.email || '—'],
+                ['PAN', person.pan || '—'],
+                ['UID', person.uid || '—'],
+                ['पत्ता', person.primaryAddress || '—']
+            ].map(([label, value]) => `<div class="person-mini-item"><div class="label">${safeText(label)}</div><div class="value">${safeText(value)}</div></div>`).join('');
+
+            target.innerHTML = `
+                <div class="person-card-head">
+                    <div>
+                        <div class="role">${safeText(roleLabel)}</div>
+                        <h3>${safeText(person.name)}</h3>
+                        <div class="smallmeta">वय: ${person.age || '--'} | DOB: ${safeText(person.dob || '--')} | Report Date: ${safeText(person.reportDate || '--')} | Order No.: ${safeText(person.reportOrder || '--')}</div>
+                    </div>
+                    <div class="person-score-box">
+                        <div class="score">${scoreText}</div>
+                        <div class="source">${safeText(scoreSource)}</div>
+                    </div>
+                </div>
+                ${renderBusinessScoreCard(person.primaryScore, person.primaryScoreSource, roleLabel + ' - Score View', 'Consumer report वर आधारित bureau score meter', person.risk.level)}
+                <div class="person-kpis">
+                    <div class="person-kpi"><div class="pk-label">Open Accounts</div><div class="pk-value">${person.openAccounts}</div></div>
+                    <div class="person-kpi"><div class="pk-label">Past Due</div><div class="pk-value">${person.pastDueAccounts}</div></div>
+                    <div class="person-kpi"><div class="pk-label">Outstanding</div><div class="pk-value">${fmtMoney(person.outstanding)}</div></div>
+                    <div class="person-kpi"><div class="pk-label">Overdue</div><div class="pk-value">${fmtMoney(person.overdue)}</div></div>
+                    <div class="person-kpi"><div class="pk-label">Parsed EMI</div><div class="pk-value">${fmtMoney(person.monthlyEmi)}</div></div>
+                    <div class="person-kpi"><div class="pk-label">External Exposure</div><div class="pk-value">${fmtMoney(person.externalExposure)}</div></div>
+                    <div class="person-kpi"><div class="pk-label">Max DPD Zone</div><div class="pk-value">${person.maxDpd >= 900 ? 'Write-off / Adverse' : (person.maxDpd ? person.maxDpd + ' days' : '0 / Current')}</div></div>
+                    <div class="person-kpi"><div class="pk-label">Reported Income</div><div class="pk-value">${incomeText}</div></div>
+                </div>
+                <div class="person-alert ${riskAlertClass}"><strong>${safeText(person.risk.label)}:</strong> ${safeText(person.risk.reasons.slice(0,3).join('; '))}</div>
+                <div class="person-analysis-grid">
+                    <div class="person-detail-box">
+                        <h5>Consumer Snapshot</h5>
+                        <div class="person-mini-grid">${consumerMini}</div>
+                    </div>
+                    <div class="person-detail-box">
+                        <h5>Detailed Analysis</h5>
+                        <ul class="person-analysis-list">${analysisPoints}</ul>
+                    </div>
+                </div>
+                <div class="business-table-title">Active Loan Exposure - तपशील</div>
+                <div class="business-table-wrap">
+                    <table class="business-table">
+                        <thead><tr><th>Lender / Loan</th><th>Status</th><th>EMI</th><th>Balance</th><th>Past Due</th><th>Date Opened</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderBusinessReport(applicant, coApplicant, combined) {
+            document.getElementById('report-container').classList.add('hidden');
+            document.getElementById('business-report-container').classList.remove('hidden');
+            document.getElementById('businessReportDate').textContent = `Generated: ${new Date().toLocaleString('en-IN')}`;
+            document.getElementById('businessApplicantNameChip').textContent = `Applicant: ${applicant.name}`;
+            document.getElementById('businessCoApplicantNameChip').textContent = `Co-Applicant: ${coApplicant.name}`;
+
+            const badge = document.getElementById('businessCommonRiskBadge');
+            badge.className = `business-risk-badge ${combined.cls}`;
+            badge.textContent = `Grade ${combined.grade} - ${combined.label}`;
+            document.getElementById('businessDecisionSummary').textContent = combined.level === 3
+                ? 'दोन्ही reports च्या combined bureau risk नुसार नवीन business loan bureau stage वर पुढे नेऊ नये.'
+                : combined.level === 2
+                    ? 'Combined bureau risk elevated आहे. Detailed underwriting आणि documentary clearance नंतरच पुढील निर्णय घ्यावा.'
+                    : 'Combined bureau view acceptable आहे; पूर्ण business underwriting बाकी आहे.';
+
+            const combinedScore = combined.worstScore !== null ? combined.worstScore : deriveBusinessFallbackScore(combined.level);
+            document.getElementById('businessCombinedScoreWrap').innerHTML = renderBusinessScoreCard(combinedScore, 'Combined Business View', 'Combined Bureau Score Meter', 'Applicant + Co-Applicant मधील available weaker score / risk derived view', combined.level);
+
+            document.getElementById('businessCombinedOpen').textContent = combined.openAccounts;
+            document.getElementById('businessCombinedPastDue').textContent = combined.pastDueAccounts;
+            document.getElementById('businessCombinedOutstanding').textContent = fmtMoney(combined.grossOutstanding);
+            document.getElementById('businessCombinedOverdue').textContent = fmtMoney(combined.adjustedOverdue);
+            document.getElementById('businessCombinedEmi').textContent = fmtMoney(combined.adjustedEmi);
+            document.getElementById('businessWorstScore').textContent = combined.worstScore !== null ? combined.worstScore : '--';
+            document.getElementById('businessWorstScoreSource').textContent = 'Applicant / Co-Applicant मधील lower available score';
+
+            const commonPoints = document.getElementById('businessCommonPoints');
+            commonPoints.innerHTML = combined.points.map(p=>`<li class="${p.type}">${safeText(p.text)}</li>`).join('');
+            const actions = document.getElementById('businessActionPoints');
+            actions.innerHTML = combined.actions.map(p=>`<li class="${p.type}">${safeText(p.text)}</li>`).join('');
+
+            renderBusinessPersonCard('businessApplicantCard', applicant, 'Applicant Report');
+            renderBusinessPersonCard('businessCoApplicantCard', coApplicant, 'Co-Applicant Report');
+
+            const note = document.getElementById('businessSharedLoanNote');
+            const wrap = document.getElementById('businessSharedLoanTableWrap');
+            const tbody = document.getElementById('businessSharedLoanTbody');
+            tbody.innerHTML = '';
+            if (combined.shared.length) {
+                note.className = 'person-alert warn';
+                note.innerHTML = `<strong>${combined.shared.length} potential shared/joint loan match.</strong> Gross outstanding ${fmtMoney(combined.grossOutstanding)}; strict-match adjusted view ${fmtMoney(combined.adjustedOutstanding)}. Manual verification आवश्यक.`;
+                combined.shared.forEach(x=>{
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${safeText(x.applicant.loanType)}</td><td>${safeText(x.applicant.dateOpened || '—')}</td><td class="num">${fmtMoney(x.applicant.balance)}</td><td class="num">${fmtMoney(x.coApplicant.balance)}</td><td>Exact strict fingerprint match - possible same household/joint loan</td>`;
+                    tbody.appendChild(tr);
+                });
+                wrap.classList.remove('hidden');
+            } else {
+                note.className = 'person-alert ok';
+                note.textContent = 'Strict fingerprint वर exact shared/joint active loan duplicate आढळला नाही. Masked account numbers असल्यास मूळ reports मध्ये manual check करा.';
+                wrap.classList.add('hidden');
+            }
+        }
+
+        async function analyzeBusinessFiles() {
+            const applicantFile = document.getElementById('businessApplicantFile').files[0];
+            const coApplicantFile = document.getElementById('businessCoApplicantFile').files[0];
+            const password = document.getElementById('businessPdfPassword').value;
+            if (!applicantFile || !coApplicantFile) {
+                alert('Applicant आणि Co-Applicant दोन्ही PDF report निवडणे आवश्यक आहे.');
+                return;
+            }
+            if (!password) {
+                alert('दोन्ही Equifax PDF वाचण्यासाठी password टाका.');
+                return;
+            }
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('business-report-container').classList.add('hidden');
+            document.getElementById('report-container').classList.add('hidden');
+            try {
+                const [appText, coText] = await Promise.all([
+                    extractPdfTextFromFile(applicantFile, password),
+                    extractPdfTextFromFile(coApplicantFile, password)
+                ]);
+                const applicant = analyzeBusinessReportText(appText, 'Applicant');
+                const coApplicant = analyzeBusinessReportText(coText, 'Co-Applicant');
+
+                if (applicant.reportOrder && coApplicant.reportOrder && applicant.reportOrder === coApplicant.reportOrder) {
+                    alert('दोन्ही ठिकाणी एकच report दिसत आहे. Applicant आणि Co-Applicant चे वेगवेगळे reports निवडा.');
+                    return;
+                }
+                if (applicant.name !== 'NAME NOT FOUND' && applicant.name === coApplicant.name) {
+                    const ok = confirm('Applicant आणि Co-Applicant report मध्ये नाव समान दिसत आहे. तरीही combined analysis करायचे का?');
+                    if (!ok) return;
+                }
+                const combined = buildCombinedBusinessAnalysis(applicant, coApplicant);
+                renderBusinessReport(applicant, coApplicant, combined);
+            } catch (error) {
+                console.error('Business PDF processing error:', error);
+                alert('Business reports वाचण्यात अडचण आली. Password, PDF format किंवा Equifax report validity तपासा.');
+            } finally {
+                document.getElementById('loader').classList.add('hidden');
+            }
+        }
+
+        function setPrintMode(mode) {
+            document.body.classList.remove('print-mode-mfi', 'print-mode-business');
+            document.body.classList.add(mode === 'business' ? 'print-mode-business' : 'print-mode-mfi');
+        }
+
+        window.addEventListener('beforeprint', () => {
+            setPrintMode(currentCreditMode === 'business' ? 'business' : 'mfi');
+        });
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('print-mode-mfi', 'print-mode-business');
+        });
+
+        function printBusinessReport() { setPrintMode('business'); window.print(); }
+
+        function printReport() { setPrintMode('mfi'); window.print(); }
     </script>
 </body>
 </html>
