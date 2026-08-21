@@ -1437,7 +1437,7 @@
                 <div class="business-report-header">
                     <div>
                         <h2>ANIK Business Credit - Common Analysis</h2>
-                        <p>Applicant + Co-Applicant स्वतंत्र report reading आणि एकत्रित family-level bureau assessment</p>
+                        <p>Applicant + Co-Applicant स्वतंत्र report reading, New / Thin File handling आणि एकत्रित family-level credit assessment</p>
                     </div>
                     <div class="business-header-meta">
                         <span class="business-header-chip" id="businessReportDate">Report: --</span>
@@ -1504,6 +1504,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
+        const NEW_TO_BUREAU_STANDARD_SCORE = 735;
 
         async function analyzeFile() {
             document.getElementById('business-report-container').classList.add('hidden');
@@ -1551,14 +1552,104 @@
             } catch (e) { return 0; }
         }
 
+        function parseNoRecordIdentity(text) {
+            const clean = String(text || '')
+                .replace(/[’‘`´]/g, "'")
+                .replace(/[：]/g, ':')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            const grab = (rx) => {
+                const m = clean.match(rx);
+                return m && m[1] ? m[1].trim().replace(/\s+/g, ' ') : '';
+            };
+
+            // IMPORTANT: Equifax no-hit reports are multi-column PDFs. pdf.js can return
+            // First/Middle/Family fields with PAN/address fields interleaved between them.
+            // Therefore each name component is read independently; it never depends on the
+            // next field being another name field.
+            const cleanNamePart = (value) => String(value || '')
+                .replace(/^[^A-Za-z]+|[^A-Za-z.' -]+$/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            const first = cleanNamePart(
+                grab(/Consumer'?s\s+First\s+Name\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i)
+                || grab(/\bFirst\s+Name\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i)
+            );
+            const middle1 = cleanNamePart(
+                grab(/Consumer'?s\s+Middle\s+Name\s*1\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i)
+                || grab(/\bMiddle\s+Name\s*1\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i)
+            );
+            const middle2 = cleanNamePart(
+                grab(/Consumer'?s\s+Middle\s+Name\s*2\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i)
+                || grab(/\bMiddle\s+Name\s*2\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i)
+            );
+            const family = cleanNamePart(
+                grab(/Consumer'?s\s+Family\s+Name\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i)
+                || grab(/\bFamily\s+Name\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i)
+                || grab(/\bLast\s+Name\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i)
+            );
+
+            // Full-name formats used by some Equifax templates.
+            const full = cleanNamePart(
+                grab(/Consumer'?s\s+Full\s+Name\s*:\s*([A-Za-z][A-Za-z .'-]{1,119}?)(?=\s+(?:PAN|Voter ID|Passport ID|UID|Father|DOB|Gender|Inquiry|Member ID|Transaction Amount|Address Information|Contact Details|Home Phone|Mobile Phone)\s*:|$)/i)
+                || grab(/\bConsumer\s+Name\s*:\s*([A-Za-z][A-Za-z .'-]{1,119}?)(?=\s+(?:Personal Information|PAN|DOB|Gender|Address|Contact Details)\b|$)/i)
+            );
+
+            // Last-resort Input Enquiry parser. This handles text where labels and values
+            // have extra spaces/newlines but still keeps each component independent.
+            const enquiryFirst = cleanNamePart(grab(/Input\s+Enquiry[\s\S]{0,1500}?Consumer'?s\s+First\s+Name\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i));
+            const enquiryMiddle1 = cleanNamePart(grab(/Input\s+Enquiry[\s\S]{0,1800}?Consumer'?s\s+Middle\s+Name\s*1\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i));
+            const enquiryMiddle2 = cleanNamePart(grab(/Input\s+Enquiry[\s\S]{0,1800}?Consumer'?s\s+Middle\s+Name\s*2\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i));
+            const enquiryFamily = cleanNamePart(grab(/Input\s+Enquiry[\s\S]{0,1800}?Consumer'?s\s+Family\s+Name\s*:\s*([A-Za-z][A-Za-z.'-]{0,49})/i));
+
+            const nameParts = [
+                first || enquiryFirst,
+                middle1 || enquiryMiddle1,
+                middle2 || enquiryMiddle2,
+                family || enquiryFamily
+            ].filter(Boolean);
+            let name = (full || nameParts.join(' ')).replace(/\s+/g, ' ').trim();
+
+            // Avoid accidental label words becoming a customer name.
+            if (/^(?:PAN|UID|DOB|GENDER|ADDRESS|MOBILE|PHONE|INPUT|ENQUIRY|CONSUMER)$/i.test(name)) name = '';
+
+            const dob = grab(/\bDOB\s*:\s*(\d{2}-\d{2}-\d{4})/i);
+            const reportDate = grab(/\bDATE\s*:\s*(\d{2}-\d{2}-\d{4})/i);
+            const pan = grab(/\bPAN\s*:\s*([A-Z]{3,5}[A-Z0-9]{4,10})\b/i);
+            // Strict patterns prevent a blank UID/Voter field from accidentally consuming the next label.
+            const uid = grab(/\bUID\s*:\s*((?:X{6,}|[X0-9]{8,16}))\b/i);
+            const voterId = grab(/\bVoter\s+ID\s*:\s*([A-Z]{2,5}[0-9]{5,12})\b/i);
+            const mobile = grab(/\bMobile\s+Phone\s*:\s*([0-9]{10})\b/i) || grab(/\bMobile\s*:\s*([0-9]{10})\b/i);
+            const homePhone = grab(/\bHome\s+Phone\s*:\s*([0-9]{10})\b/i);
+            const address = grab(/Address\s+Information\s*1\s*:\s*Address\s*:\s*(.+?)(?=\s+(?:State|Postal|Address\s+Information\s*2|Consumer'?s\s+(?:First|Middle|Family)\s+Name|PAN|Voter\s+ID|Passport\s+ID|UID|DOB|Gender|Mobile\s+Phone|Home\s+Phone|Inquiry\s*\/\s*Request\s+Purpose)\s*:|$)/i)
+                || grab(/\bAddress\s*:\s*(.+?)(?=\s+(?:State|Postal|PAN|UID|DOB|Gender|Mobile\s+Phone|Home\s+Phone)\s*:|$)/i);
+            const gender = grab(/\bGender\s*:\s*(Male|Female|Other)\b/i);
+            const purpose = grab(/Inquiry\s*\/\s*Request\s+Purpose\s*:\s*(.+?)(?=\s+Member\s+ID\s*\/\s*Unique\s+Account\s+Number\s*:|\s+Transaction\s+Amount\s*:|$)/i);
+            const transactionAmount = grab(/Transaction\s+Amount\s*:\s*(?:Rs\.?\s*)?([\d,]+)/i);
+
+            let age = 0;
+            if (dob && reportDate) age = calculateAge(dob, reportDate);
+            return {
+                name, first: first || enquiryFirst, middle1: middle1 || enquiryMiddle1,
+                middle2: middle2 || enquiryMiddle2, family: family || enquiryFamily,
+                dob, reportDate, age, pan, uid, voterId, mobile, homePhone,
+                address, gender, purpose, transactionAmount
+            };
+        }
+
         function analyzeCreditReportText(text) {
             const result = { name: 'माहिती आढळली नाही', score: 'N/A', age: 0, openAccounts: 0, pastDueAccounts: 0, totalBalance: 0, overdueAmount: 0, monthlyInstallment: 0, writtenOffAmount: 0, otherCompanyOpenAccounts: 0, pastDueCompanies: [], negativeAccounts: [], activeLoanDetails: [], recordNotFound: false, queriedName: '' };
 
-            if (text.includes('Consumer record not found')) {
+            if (/Consumer record not found/i.test(text)) {
+                const identity = parseNoRecordIdentity(text);
                 result.recordNotFound = true;
-                result.name = 'माहिती आढळली नाही';
-                let nameMatch = text.match(/Consumer’s Full Name\s*:\s*([A-Za-z\s]+)/i) || text.match(/Consumer’s First Name\s*:\s*([A-Za-z\s]+)/i);
-                if (nameMatch && nameMatch[1]) result.queriedName = nameMatch[1].trim();
+                result.name = identity.name || 'नवीन ग्राहक';
+                result.queriedName = identity.name || 'नाव उपलब्ध नाही';
+                result.age = identity.age || 0;
+                result.score = 'N/A';
+                result.noRecordIdentity = identity;
                 return result;
             }
 
@@ -1677,10 +1768,12 @@
             const formatCurrencyForPoints = (num) => new Intl.NumberFormat('en-IN').format(num);
 
             if (analysis.recordNotFound) {
-                recommendationText = 'रेकॉर्ड उपलब्ध नाही';
+                recommendationText = 'नवीन / Thin File ग्राहक';
                 recommendationClass = 'recommendation-info';
-                recommendedLoanAmount = 'मॅन्युअल तपासणी आवश्यक';
-                points.push({ text: 'इक्विफॅक्समध्ये या ग्राहकाचा कोणताही क्रेडिट रेकॉर्ड आढळला नाही. हा नवीन ग्राहक असू शकतो किंवा दिलेली माहिती चुकीची असू शकते.', type: 'neutral' });
+                recommendedLoanAmount = 'ANIK New Customer Policy प्रमाणे तपासणी';
+                points.push({ text: `इक्विफॅक्समध्ये जुना credit record आढळला नाही. ग्राहकाचे enquiry नाव <strong>${analysis.queriedName || analysis.name}</strong> म्हणून वाचले आहे.`, type: 'neutral' });
+                points.push({ text: `Bureau score उपलब्ध नसल्यामुळे system <strong>ANIK Standard New Customer Score ${NEW_TO_BUREAU_STANDARD_SCORE}</strong> वापरेल. हा bureau score नाही.`, type: 'positive' });
+                points.push({ text: 'KYC, वय/ओळख, घरभेट, व्यवसाय/उत्पन्न, bank statement आणि repayment capacity स्वतंत्रपणे verify करणे आवश्यक आहे.', type: 'neutral' });
                 return { recommendation: recommendationText, class: recommendationClass, points, recommendedLoanAmount };
             }
             if (analysis.age > 60) {
@@ -1758,11 +1851,11 @@
 
             if (analysis.recordNotFound) {
                 return {
-                    score: 735,
-                    source: 'ANIK Score',
+                    score: NEW_TO_BUREAU_STANDARD_SCORE,
+                    source: 'ANIK New Customer Score',
                     label: 'New / Thin File',
-                    rating: 'Manual Review',
-                    desc: 'KYC, घरभेट, उत्पन्न पडताळणी आणि शाखा स्तरावरील तपासणी आवश्यक आहे.'
+                    rating: 'Standard New Customer Review',
+                    desc: 'Bureau record उपलब्ध नाही. हा ANIK चा standard internal new-customer score आहे; KYC, घरभेट, उत्पन्न, bank statement आणि repayment capacity पडताळणी आवश्यक आहे.'
                 };
             }
 
@@ -2145,6 +2238,8 @@
 
         function analyzeBusinessReportText(text, role) {
             const clean = normalizeWs(text);
+            const isRecordNotFound = /Consumer record not found/i.test(clean);
+            const noRecordIdentity = isRecordNotFound ? parseNoRecordIdentity(clean) : null;
             const summary = parseBusinessSummarySection(clean);
             const accounts = parseBusinessAccountBlocks(clean);
             const activeAccounts = accounts.filter(a => a.isOpen);
@@ -2199,29 +2294,33 @@
             const overdue = summaryOverdue || accountOverdue;
             const monthlyEmi = accountEmi || summary.mfi.installment || 0;
             const reportedIncome = incomeMatch ? moneyToNumber(incomeMatch[1]) : 0;
-            const primaryScore = ersMatch ? +ersMatch[1] : (mrsMatch ? +mrsMatch[1] : null);
-            const primaryScoreSource = ersMatch ? 'Equifax Risk Score 4.0' : (mrsMatch ? 'MRS Bureau Score' : 'Score not available');
+            const primaryScore = isRecordNotFound ? NEW_TO_BUREAU_STANDARD_SCORE : (ersMatch ? +ersMatch[1] : (mrsMatch ? +mrsMatch[1] : null));
+            const primaryScoreSource = isRecordNotFound ? 'ANIK New Customer Score' : (ersMatch ? 'Equifax Risk Score 4.0' : (mrsMatch ? 'MRS Bureau Score' : 'Score not available'));
 
             const result = {
                 role,
-                name: nameMatch ? normalizeWs(nameMatch[1]).toUpperCase() : 'NAME NOT FOUND',
-                dob: dobMatch ? dobMatch[1] : '', age: ageMatch ? +ageMatch[1] : 0,
-                gender: genderMatch ? normalizeWs(genderMatch[1]) : '',
+                name: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.name) ? noRecordIdentity.name.toUpperCase() : 'NEW CUSTOMER') : (nameMatch ? normalizeWs(nameMatch[1]).toUpperCase() : 'NAME NOT FOUND'),
+                dob: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.dob) || '') : (dobMatch ? dobMatch[1] : ''),
+                age: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.age) || 0) : (ageMatch ? +ageMatch[1] : 0),
+                gender: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.gender) || '') : (genderMatch ? normalizeWs(genderMatch[1]) : ''),
                 occupation: occupationMatch ? normalizeWs(occupationMatch[1]) : '',
                 reportedIncome,
-                primaryAddress,
-                mobile: mobileMatch ? mobileMatch[1] : '',
-                altMobile: altMobileMatch ? altMobileMatch[1] : '',
-                homePhone: homeMatch ? homeMatch[1] : '',
-                email: emailMatch ? emailMatch[1] : '',
-                pan: panMatch ? panMatch[1] : '',
-                uid: uidMatch ? uidMatch[1] : '',
-                voterId: voterMatch ? voterMatch[1] : '',
-                reportDate: reportDateMatch ? reportDateMatch[1] : '',
+                primaryAddress: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.address) || '') : primaryAddress,
+                mobile: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.mobile) || '') : (mobileMatch ? mobileMatch[1] : ''),
+                altMobile: isRecordNotFound ? '' : (altMobileMatch ? altMobileMatch[1] : ''),
+                homePhone: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.homePhone) || '') : (homeMatch ? homeMatch[1] : ''),
+                email: isRecordNotFound ? '' : (emailMatch ? emailMatch[1] : ''),
+                pan: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.pan) || '') : (panMatch ? panMatch[1] : ''),
+                uid: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.uid) || '') : (uidMatch ? uidMatch[1] : ''),
+                voterId: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.voterId) || '') : (voterMatch ? voterMatch[1] : ''),
+                reportDate: isRecordNotFound ? ((noRecordIdentity && noRecordIdentity.reportDate) || (reportDateMatch ? reportDateMatch[1] : '')) : (reportDateMatch ? reportDateMatch[1] : ''),
                 reportOrder: reportOrderMatch ? normalizeWs(reportOrderMatch[1]) : '',
                 mrs: mrsMatch ? +mrsMatch[1] : null,
                 equifaxScore: ersMatch ? +ersMatch[1] : null,
                 primaryScore, primaryScoreSource,
+                recordNotFound: isRecordNotFound,
+                newToBureau: isRecordNotFound,
+                noRecordIdentity,
                 summary, accounts, activeAccounts,
                 openAccounts: overallOpen,
                 pastDueAccounts: overallPastDue,
@@ -2245,6 +2344,11 @@
             const reasons = [];
             const score = r.primaryScore;
             const ratio = r.reportedIncome > 0 ? r.monthlyEmi / r.reportedIncome : null;
+
+            if (r.recordNotFound) {
+                level = Math.max(level, 1);
+                reasons.push(`bureau record not found - New / Thin File; ANIK standard internal score ${NEW_TO_BUREAU_STANDARD_SCORE}`);
+            }
 
             if (r.writeOff > 0 || r.severeStatusAccounts.length > 0) {
                 level = 3; reasons.push('write-off / settled / severe adverse status दिसत आहे');
@@ -2277,12 +2381,13 @@
             }
             if (!reasons.length) reasons.push('major bureau delinquency / write-off signal parsed नाही');
 
-            const meta = [
+            let meta = [
                 {grade:'A', label:'Clean Bureau View', cls:'risk-grade-a'},
                 {grade:'B', label:'Review', cls:'risk-grade-b'},
                 {grade:'C', label:'High Risk / Hold', cls:'risk-grade-c'},
                 {grade:'D', label:'Critical / Reject at Bureau Stage', cls:'risk-grade-d'}
             ][level];
+            if (r.recordNotFound && level <= 1) meta = {grade:'B', label:'New / Thin File - Standard Review', cls:'risk-grade-b'};
             return { level, ...meta, reasons };
         }
 
@@ -2316,6 +2421,7 @@
             const adjustedEmi = Math.max(0,grossEmi-sharedEmi);
             const scores = [applicant.primaryScore, coApplicant.primaryScore].filter(v=>Number.isFinite(v));
             const worstScore = scores.length ? Math.min(...scores) : null;
+            const newToBureauCount = [applicant, coApplicant].filter(p => p.recordNotFound).length;
 
             let level = Math.max(applicant.risk.level, coApplicant.risk.level);
             const points = [];
@@ -2323,6 +2429,10 @@
             else points.push({type:'positive', text:`Applicant bureau view: ${applicant.risk.label}.`});
             if (coApplicant.risk.level >= 2) points.push({type:coApplicant.risk.level===3?'critical':'warning', text:`Co-Applicant: ${coApplicant.risk.reasons.slice(0,2).join('; ')}.`});
             else points.push({type:'positive', text:`Co-Applicant bureau view: ${coApplicant.risk.label}.`});
+
+            if (newToBureauCount > 0) {
+                points.push({type:'warning', text:`${newToBureauCount} applicant NEW / THIN FILE आहे. Bureau history उपलब्ध नसल्यामुळे standard ANIK internal new-customer score वापरला आहे.`});
+            }
 
             const totalPastDueAccounts = applicant.pastDueAccounts + coApplicant.pastDueAccounts;
             if (applicant.pastDueAccounts > 0 && coApplicant.pastDueAccounts > 0) {
@@ -2346,6 +2456,9 @@
             ][level];
 
             const actions = [];
+            if (newToBureauCount > 0) {
+                actions.push({type:'warning', text:'New / Thin File applicant साठी KYC match, age/identity validation, घर/व्यवसाय पडताळणी, bank statement, income/cash-flow आणि reference checks पूर्ण केल्याशिवाय final sanction करू नये.'});
+            }
             if (level === 3) {
                 actions.push({type:'critical', text:'नवीन business loan पुढे नेण्यापूर्वी overdue regularisation / closure proof / NOC आणि latest bureau refresh आवश्यक.'});
                 actions.push({type:'critical', text:'Branch recommendation असूनही bureau adverse clear होईपर्यंत sanction stage hold करावी.'});
@@ -2367,7 +2480,7 @@
                 grossOverdue, adjustedOverdue,
                 grossEmi, adjustedEmi,
                 sharedOutstanding, sharedOverdue, sharedEmi,
-                worstScore, points, actions
+                worstScore, newToBureauCount, points, actions
             };
         }
 
@@ -2395,7 +2508,10 @@
         function renderBusinessScoreCard(scoreRaw, source, title, subtitle, fallbackLevel) {
             const fallbackScore = deriveBusinessFallbackScore(fallbackLevel || 2);
             const usableScore = (scoreRaw !== null && scoreRaw !== undefined && !Number.isNaN(parseInt(scoreRaw, 10))) ? parseInt(scoreRaw, 10) : fallbackScore;
-            const meta = getBusinessScoreMeta(usableScore);
+            const isInternalNewScore = /ANIK New Customer Score/i.test(String(source || ''));
+            const meta = isInternalNewScore
+                ? { score: usableScore, label: 'Standard Internal New Customer Score', rating: 'New / Thin File', desc: `Credit bureau record उपलब्ध नाही. ${usableScore} हा ANIK चा standard internal new-customer score आहे; हा bureau score नाही.` }
+                : getBusinessScoreMeta(usableScore);
             const r = 44;
             const circumference = 2 * Math.PI * r;
             const clamped = Math.min(Math.max(usableScore, 300), 900);
@@ -2437,7 +2553,9 @@
 
         function buildBusinessPersonAnalysis(person) {
             const points = [];
-            if (person.primaryScore !== null) {
+            if (person.recordNotFound) {
+                points.push({type:'warning', text:`Credit bureau record उपलब्ध नाही. ग्राहक NEW / THIN FILE म्हणून classify केला आहे आणि ANIK Standard New Customer Score ${NEW_TO_BUREAU_STANDARD_SCORE} वापरला आहे.`});
+            } else if (person.primaryScore !== null) {
                 if (person.primaryScore >= 750) points.push({type:'positive', text:`Bureau score ${person.primaryScore} आहे, जो good / low-risk range मध्ये येतो.`});
                 else if (person.primaryScore >= 650) points.push({type:'warning', text:`Bureau score ${person.primaryScore} मध्यम आहे; exposure व repayment capacity काळजीपूर्वक तपासा.`});
                 else points.push({type:'critical', text:`Bureau score ${person.primaryScore} कमी आहे; adverse behaviour ची शक्यता तपासणे आवश्यक आहे.`});
@@ -2496,7 +2614,7 @@
             target.innerHTML = `
                 <div class="person-card-head">
                     <div>
-                        <div class="role">${safeText(roleLabel)}</div>
+                        <div class="role">${safeText(roleLabel)}${person.recordNotFound ? ' • NEW / THIN FILE' : ''}</div>
                         <h3>${safeText(person.name)}</h3>
                         <div class="smallmeta">वय: ${person.age || '--'} | DOB: ${safeText(person.dob || '--')} | Report Date: ${safeText(person.reportDate || '--')} | Order No.: ${safeText(person.reportOrder || '--')}</div>
                     </div>
@@ -2554,7 +2672,9 @@
                     : 'Combined bureau view acceptable आहे; पूर्ण business underwriting बाकी आहे.';
 
             const combinedScore = combined.worstScore !== null ? combined.worstScore : deriveBusinessFallbackScore(combined.level);
-            document.getElementById('businessCombinedScoreWrap').innerHTML = renderBusinessScoreCard(combinedScore, 'Combined Business View', 'Combined Bureau Score Meter', 'Applicant + Co-Applicant मधील available weaker score / risk derived view', combined.level);
+            const combinedScoreSource = combined.newToBureauCount === 2 ? 'ANIK New Customer Score' : (combined.newToBureauCount === 1 ? 'Combined - Bureau + ANIK New Customer Score' : 'Combined Business View');
+            const combinedScoreTitle = combined.newToBureauCount === 2 ? 'Combined New / Thin File Score View' : 'Combined Bureau Score Meter';
+            document.getElementById('businessCombinedScoreWrap').innerHTML = renderBusinessScoreCard(combinedScore, combinedScoreSource, combinedScoreTitle, 'Applicant + Co-Applicant मधील weaker available score / new-customer internal score view', combined.level);
 
             document.getElementById('businessCombinedOpen').textContent = combined.openAccounts;
             document.getElementById('businessCombinedPastDue').textContent = combined.pastDueAccounts;
@@ -2562,7 +2682,7 @@
             document.getElementById('businessCombinedOverdue').textContent = fmtMoney(combined.adjustedOverdue);
             document.getElementById('businessCombinedEmi').textContent = fmtMoney(combined.adjustedEmi);
             document.getElementById('businessWorstScore').textContent = combined.worstScore !== null ? combined.worstScore : '--';
-            document.getElementById('businessWorstScoreSource').textContent = 'Applicant / Co-Applicant मधील lower available score';
+            document.getElementById('businessWorstScoreSource').textContent = combined.newToBureauCount > 0 ? 'Bureau नसल्यास ANIK standard new-customer score समाविष्ट' : 'Applicant / Co-Applicant मधील lower available bureau score';
 
             const commonPoints = document.getElementById('businessCommonPoints');
             commonPoints.innerHTML = combined.points.map(p=>`<li class="${p.type}">${safeText(p.text)}</li>`).join('');
